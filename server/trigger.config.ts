@@ -15,5 +15,5 @@ export default defineConfig({
     },
   },
   maxDuration: 300, // 5 minutes
-  dirs: ["./app/trigger"],
+  dirs: ["./src/app/trigger"],
 });

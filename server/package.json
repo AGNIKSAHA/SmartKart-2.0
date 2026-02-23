@@ -11,6 +11,7 @@
     "migrate:roles": "tsx scripts/migrate-role-data.ts"
   },
   "dependencies": {
+    "@trigger.dev/sdk": "^4.4.1",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -25,6 +26,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@trigger.dev/build": "^4.4.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
