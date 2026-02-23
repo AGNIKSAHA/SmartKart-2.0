@@ -4,10 +4,11 @@ import { cartApi } from "./cartAPI";
 
 const cartKey = ["cart"] as const;
 
-export const useCart = () =>
+export const useCart = (enabled: boolean = true) =>
   useQuery({
     queryKey: cartKey,
-    queryFn: () => cartApi.get()
+    queryFn: () => cartApi.get(),
+    enabled,
   });
 
 export const useUpsertCartItem = () => {
@@ -17,8 +18,7 @@ export const useUpsertCartItem = () => {
     mutationFn: cartApi.upsert,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKey });
-      toast.success("Cart updated");
-    }
+    },
   });
 };
 
@@ -29,7 +29,6 @@ export const useRemoveCartItem = () => {
     mutationFn: cartApi.remove,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKey });
-      toast.success("Item removed");
-    }
+    },
   });
 };

@@ -31,7 +31,10 @@ export const VerifyEmailPage = () => {
   useEffect(() => {
     if (verifyEmail.isSuccess) {
       toast.success("Email verified successfully! Please log in.");
-      navigate("/login", { replace: true });
+      const timer = setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [verifyEmail.isSuccess, navigate]);
 
@@ -53,7 +56,9 @@ export const VerifyEmailPage = () => {
           <div className="mb-8 text-center">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-700">
               {isAutoVerifying ? (
-                verifyEmail.isError ? (
+                verifyEmail.isSuccess ? (
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                ) : verifyEmail.isError ? (
                   <XCircle className="h-8 w-8 text-red-500" />
                 ) : (
                   <Loader2 className="h-8 w-8 animate-spin" />
@@ -64,16 +69,20 @@ export const VerifyEmailPage = () => {
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               {isAutoVerifying
-                ? verifyEmail.isError
-                  ? "Verification Failed"
-                  : "Verifying your email"
+                ? verifyEmail.isSuccess
+                  ? "Email Verified!"
+                  : verifyEmail.isError
+                    ? "Verification Failed"
+                    : "Verifying your email"
                 : "Verify your email"}
             </h1>
             <p className="mt-2 text-sm text-slate-500">
               {isAutoVerifying
-                ? verifyEmail.isError
-                  ? "The link may be expired or invalid. Please request a new one below."
-                  : "Please wait while we securely verify your email address..."
+                ? verifyEmail.isSuccess
+                  ? "Your email has been successfully verified. Redirection to login..."
+                  : verifyEmail.isError
+                    ? "The link may be expired or invalid. Please request a new one below."
+                    : "Please wait while we securely verify your email address..."
                 : "Didn't receive the email? Enter your address to request a new verification link."}
             </p>
           </div>

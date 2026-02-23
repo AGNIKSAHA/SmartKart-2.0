@@ -10,6 +10,109 @@ import { orderStore } from "../order/order.store.js";
 import { productStore } from "../product/product.store.js";
 import { userStore } from "../user/user.store.js";
 
+async function processSuccessfulPayment(
+  orderId: string,
+  userId: string,
+  sessionId: string,
+): Promise<void> {
+  // Mark order as paid atomically (will return undefined if already paid)
+  const order = await orderStore.markAsPaid(orderId);
+  if (!order) {
+    return; // Already processed by another worker/webhook
+  }
+
+  // Save Stripe session ID on the order for potential refunds
+  await orderStore.setStripeSessionId(orderId, sessionId);
+
+  // Decrement stock for each purchased item
+  await productStore.decrementStock(
+    order.items.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    })),
+  );
+
+  // Clear the user's cart
+  await cartStore.clearByUserId(userId);
+
+  // Send notifications
+  const totalQuantity = order.items.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+  const itemQuantities = order.items
+    .map((item) => `${item.title} x${item.quantity}`)
+    .join(", ");
+
+  await notificationStore.create({
+    targetRole: "shopkeeper",
+    title: "New Paid Order Received",
+    message: `Customer: ${order.shippingDetails.recipientName} | Mobile: ${order.shippingDetails.mobileNumber} | Address: ${order.shippingDetails.address} | Quantity: ${totalQuantity} | Items: ${itemQuantities} | Total: \$${order.totalAmount.toFixed(2)} | Payment: Stripe`,
+    orderId: order.id,
+  });
+
+  // Notify consumer
+  await notificationStore.create({
+    targetRole: "consumer",
+    title: "Payment Successful",
+    message: `Your payment of \$${order.totalAmount.toFixed(2)} for order #${order.id.slice(0, 8)} was successful. Items: ${itemQuantities} | Shipping to: ${order.shippingDetails.address}`,
+    orderId: order.id,
+  });
+
+  // Email shopkeepers
+  const shopkeeperIds = [
+    ...new Set(
+      (
+        await Promise.all(
+          order.items.map(async (item) => {
+            const product = await productStore.findByIdWithShopkeeper(
+              item.productId,
+            );
+            return product?.shopkeeperId;
+          }),
+        )
+      ).filter(
+        (value): value is string =>
+          typeof value === "string" && value.length > 0,
+      ),
+    ),
+  ];
+
+  if (shopkeeperIds.length > 0) {
+    const shopkeepers = await Promise.all(
+      shopkeeperIds.map((id) => userStore.findById(id)),
+    );
+    const recipientEmails = shopkeepers
+      .filter((shopkeeper): shopkeeper is NonNullable<typeof shopkeeper> =>
+        Boolean(shopkeeper),
+      )
+      .filter((shopkeeper) => shopkeeper.role === "shopkeeper")
+      .map((shopkeeper) => shopkeeper.email);
+
+    await Promise.allSettled(
+      recipientEmails.map((email) =>
+        sendEmail({
+          to: email,
+          subject: "New paid order received",
+          text: `Customer: ${order.shippingDetails.recipientName}\nMobile: ${order.shippingDetails.mobileNumber}\nAddress: ${order.shippingDetails.address}\nQuantity: ${totalQuantity}\nItems: ${itemQuantities}\nTotal: \$${order.totalAmount.toFixed(2)}\nPayment: Stripe\nOrder ID: ${order.id}`,
+        }),
+      ),
+    );
+  }
+
+  // Email consumer
+  const consumer = await userStore.findById(userId);
+  if (consumer) {
+    await sendEmail({
+      to: consumer.email,
+      subject: "Payment successful – Order confirmed",
+      text: `Hi ${order.shippingDetails.recipientName},\n\nYour payment of \$${order.totalAmount.toFixed(2)} was successful!\n\nOrder ID: ${order.id}\nItems: ${itemQuantities}\nTotal: \$${order.totalAmount.toFixed(2)}\nShipping to: ${order.shippingDetails.address}\n\nThank you for your purchase!`,
+    }).catch(() => {
+      /* best-effort */
+    });
+  }
+}
+
 export const paymentController = {
   /**
    * Creates a Stripe Checkout Session for the current user's cart.
@@ -161,103 +264,7 @@ export const paymentController = {
         return;
       }
 
-      // Mark order as paid
-      const order = await orderStore.markAsPaid(orderId);
-      if (!order) {
-        res.status(200).json({ received: true });
-        return;
-      }
-
-      // Save Stripe session ID on the order for potential refunds
-      await orderStore.setStripeSessionId(orderId, session.id);
-
-      // Decrement stock for each purchased item
-      await productStore.decrementStock(
-        order.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-      );
-
-      // Clear the user's cart
-      await cartStore.clearByUserId(userId);
-
-      // Send notifications
-      const totalQuantity = order.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0,
-      );
-      const itemQuantities = order.items
-        .map((item) => `${item.title} x${item.quantity}`)
-        .join(", ");
-
-      await notificationStore.create({
-        targetRole: "shopkeeper",
-        title: "New Paid Order Received",
-        message: `Customer: ${order.shippingDetails.recipientName} | Mobile: ${order.shippingDetails.mobileNumber} | Address: ${order.shippingDetails.address} | Quantity: ${totalQuantity} | Items: ${itemQuantities} | Total: $${order.totalAmount.toFixed(2)} | Payment: Stripe`,
-        orderId: order.id,
-      });
-
-      // Notify consumer
-      await notificationStore.create({
-        targetRole: "consumer",
-        title: "Payment Successful",
-        message: `Your payment of $${order.totalAmount.toFixed(2)} for order #${order.id.slice(0, 8)} was successful. Items: ${itemQuantities} | Shipping to: ${order.shippingDetails.address}`,
-        orderId: order.id,
-      });
-
-      // Email shopkeepers
-      const shopkeeperIds = [
-        ...new Set(
-          (
-            await Promise.all(
-              order.items.map(async (item) => {
-                const product = await productStore.findByIdWithShopkeeper(
-                  item.productId,
-                );
-                return product?.shopkeeperId;
-              }),
-            )
-          ).filter(
-            (value): value is string =>
-              typeof value === "string" && value.length > 0,
-          ),
-        ),
-      ];
-
-      if (shopkeeperIds.length > 0) {
-        const shopkeepers = await Promise.all(
-          shopkeeperIds.map((id) => userStore.findById(id)),
-        );
-        const recipientEmails = shopkeepers
-          .filter((shopkeeper): shopkeeper is NonNullable<typeof shopkeeper> =>
-            Boolean(shopkeeper),
-          )
-          .filter((shopkeeper) => shopkeeper.role === "shopkeeper")
-          .map((shopkeeper) => shopkeeper.email);
-
-        await Promise.allSettled(
-          recipientEmails.map((email) =>
-            sendEmail({
-              to: email,
-              subject: "New paid order received",
-              text: `Customer: ${order.shippingDetails.recipientName}\nMobile: ${order.shippingDetails.mobileNumber}\nAddress: ${order.shippingDetails.address}\nQuantity: ${totalQuantity}\nItems: ${itemQuantities}\nTotal: $${order.totalAmount.toFixed(2)}\nPayment: Stripe\nOrder ID: ${order.id}`,
-            }),
-          ),
-        );
-      }
-
-      // Email consumer
-      const consumer = await userStore.findById(userId);
-      if (consumer) {
-        await sendEmail({
-          to: consumer.email,
-          subject: "Payment successful – Order confirmed",
-          text: `Hi ${order.shippingDetails.recipientName},\n\nYour payment of $${order.totalAmount.toFixed(2)} was successful!\n\nOrder ID: ${order.id}\nItems: ${itemQuantities}\nTotal: $${order.totalAmount.toFixed(2)}\nShipping to: ${order.shippingDetails.address}\n\nThank you for your purchase!`,
-        }).catch(() => {
-          /* best-effort */
-        });
-      }
+      await processSuccessfulPayment(orderId, userId, session.id);
     }
 
     res.status(200).json({ received: true });
@@ -273,6 +280,20 @@ export const paymentController = {
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    // Fallback fulfillment in case the Stripe webhook was dropped or
+    // blocked (e.g., during local development without a webhook forwarder)
+    if (
+      session.payment_status === "paid" &&
+      session.metadata?.orderId &&
+      session.metadata?.userId
+    ) {
+      await processSuccessfulPayment(
+        session.metadata.orderId,
+        session.metadata.userId,
+        session.id,
+      );
+    }
 
     sendResponse(res, 200, "Session status retrieved", {
       status: session.payment_status,

@@ -1,20 +1,8 @@
 import { useCallback, useState, useRef } from "react";
-import {
-  GoogleMap,
-  useJsApiLoader,
-  MarkerF,
-  Autocomplete,
-} from "@react-google-maps/api";
+import { GoogleMap, MarkerF, Autocomplete } from "@react-google-maps/api";
 import { Loader } from "./Loader";
-import { GOOGLE_MAPS_API_KEY } from "../utils/env";
-import {
-  AlertCircle,
-  CreditCard,
-  MapPin,
-  X,
-  Check,
-  Search,
-} from "lucide-react";
+import { CreditCard, MapPin, X, Check, Search } from "lucide-react";
+import { useGoogleMaps } from "../providers/GoogleMapsProvider";
 
 interface LocationSelectorProps {
   initialLocation?: { lng: number; lat: number } | undefined;
@@ -51,10 +39,6 @@ const defaultCenter = {
   lng: 77.4985,
 };
 
-const LIBRARIES: ("places" | "geometry" | "drawing" | "visualization")[] = [
-  "places",
-];
-
 export const LocationSelector = ({
   initialLocation,
   onLocationSelect,
@@ -63,15 +47,11 @@ export const LocationSelector = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
+  const { isLoaded, loadError } = useGoogleMaps();
+
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
   }, []);
-
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: LIBRARIES,
-  });
 
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(
     initialLocation || null,

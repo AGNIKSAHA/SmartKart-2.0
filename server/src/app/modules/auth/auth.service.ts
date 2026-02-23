@@ -5,7 +5,11 @@ import type { UserEntity } from "../../common/types/domain.types.js";
 import { AppError } from "../../common/middlewares/error.middleware.js";
 import { sendEmail } from "../../common/utils/mail.js";
 import { sha256, generateToken } from "../../common/utils/hash.js";
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../common/utils/jwt.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} from "../../common/utils/jwt.js";
 import { durationToMs } from "../../common/utils/time.js";
 import { createId } from "../../common/utils/id.js";
 import { tokenStore } from "../token/token.store.js";
@@ -50,10 +54,12 @@ const toSafeUser = (user: UserEntity): AuthUserResponse => ({
   email: user.email,
   role: user.role,
   createdAt: user.createdAt,
-  isEmailVerified: user.isEmailVerified
+  isEmailVerified: user.isEmailVerified,
 });
 
-const createSessionTokens = async (user: UserEntity): Promise<SessionTokens> => {
+const createSessionTokens = async (
+  user: UserEntity,
+): Promise<SessionTokens> => {
   const tokenId = createId();
   const refreshMaxAgeMs = durationToMs(env.REFRESH_TOKEN_EXPIRES_IN);
   const accessMaxAgeMs = durationToMs(env.ACCESS_TOKEN_EXPIRES_IN);
@@ -62,27 +68,27 @@ const createSessionTokens = async (user: UserEntity): Promise<SessionTokens> => 
     id: tokenId,
     userId: user.id,
     expiresAt: Date.now() + refreshMaxAgeMs,
-    revoked: false
+    revoked: false,
   });
 
   const accessToken = signAccessToken({
     sub: user.id,
     role: user.role,
-    email: user.email
+    email: user.email,
   });
 
   const refreshToken = signRefreshToken({
     sub: user.id,
     role: user.role,
     email: user.email,
-    tokenId
+    tokenId,
   });
 
   return {
     accessToken,
     refreshToken,
     accessMaxAgeMs,
-    refreshMaxAgeMs
+    refreshMaxAgeMs,
   };
 };
 
@@ -98,7 +104,7 @@ const sendVerificationEmail = async (user: UserEntity): Promise<void> => {
   await sendEmail({
     to: user.email,
     subject: "Verify your email",
-    text: `Verify your account with this link: ${verifyLink}`
+    text: `Verify your account with this link: ${verifyLink}`,
   });
 };
 
@@ -115,7 +121,7 @@ export const authService = {
       email: input.email,
       passwordHash,
       role: input.role,
-      isEmailVerified: false
+      isEmailVerified: false,
     });
 
     await sendVerificationEmail(user);
@@ -129,7 +135,10 @@ export const authService = {
       throw new AppError("Invalid credentials", 401);
     }
 
-    const validPassword = await bcrypt.compare(input.password, user.passwordHash);
+    const validPassword = await bcrypt.compare(
+      input.password,
+      user.passwordHash,
+    );
     if (!validPassword) {
       throw new AppError("Invalid credentials", 401);
     }
@@ -150,7 +159,11 @@ export const authService = {
     }
 
     const tokenRecord = await tokenStore.findById(payload.tokenId);
-    if (!tokenRecord || tokenRecord.revoked || tokenRecord.expiresAt < Date.now()) {
+    if (
+      !tokenRecord ||
+      tokenRecord.revoked ||
+      tokenRecord.expiresAt < Date.now()
+    ) {
       throw new AppError("Refresh token expired or revoked", 401);
     }
 
@@ -179,6 +192,11 @@ export const authService = {
   },
 
   async verifyEmail(email: string, token: string): Promise<void> {
+    const user = await userStore.findByEmail(email);
+    if (user?.isEmailVerified) {
+      return;
+    }
+
     const ok = await userStore.verifyEmail(email, sha256(token));
     if (!ok) {
       throw new AppError("Invalid or expired verification token", 400);
@@ -208,7 +226,11 @@ export const authService = {
     const tokenHash = sha256(token);
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
-    const updated = await userStore.setPasswordResetToken(user.email, tokenHash, expiresAt);
+    const updated = await userStore.setPasswordResetToken(
+      user.email,
+      tokenHash,
+      expiresAt,
+    );
     if (!updated) {
       return;
     }
@@ -218,15 +240,23 @@ export const authService = {
     await sendEmail({
       to: user.email,
       subject: "Reset your password",
-      text: `Reset your password with this link: ${resetLink}`
+      text: `Reset your password with this link: ${resetLink}`,
     });
   },
 
-  async resetPassword(email: string, token: string, newPassword: string): Promise<void> {
+  async resetPassword(
+    email: string,
+    token: string,
+    newPassword: string,
+  ): Promise<void> {
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    const ok = await userStore.resetPassword(email, sha256(token), passwordHash);
+    const ok = await userStore.resetPassword(
+      email,
+      sha256(token),
+      passwordHash,
+    );
     if (!ok) {
       throw new AppError("Invalid or expired reset token", 400);
     }
-  }
+  },
 };

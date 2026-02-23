@@ -177,8 +177,11 @@ export const CartPage = () => {
                         productId: line.productId,
                         quantity: line.quantity - 1,
                       });
-                    } catch {
-                      toast.error("Quantity update failed");
+                    } catch (error: any) {
+                      toast.error(
+                        error.response?.data?.message ||
+                          "Quantity update failed",
+                      );
                     }
                   }}
                 >
@@ -189,21 +192,44 @@ export const CartPage = () => {
                 </span>
                 <button
                   type="button"
-                  className="rounded border border-slate-300 px-2"
-                  disabled={upsertItem.isPending}
+                  className="rounded border border-slate-300 px-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={
+                    upsertItem.isPending ||
+                    (line.product?.stock !== undefined &&
+                      line.quantity >= line.product.stock)
+                  }
                   onClick={async () => {
                     try {
                       await upsertItem.mutateAsync({
                         productId: line.productId,
                         quantity: line.quantity + 1,
                       });
-                    } catch {
-                      toast.error("Quantity update failed");
+                    } catch (error: any) {
+                      toast.error(
+                        error.response?.data?.message ||
+                          "Quantity update failed",
+                      );
                     }
                   }}
                 >
                   +
                 </button>
+                <span className="ml-4 text-xs font-medium">
+                  {line.product?.stock === 0 ? (
+                    <span className="text-red-500 uppercase tracking-tighter">
+                      Out of Stock
+                    </span>
+                  ) : line.product?.stock !== undefined &&
+                    line.product.stock <= 5 ? (
+                    <span className="text-amber-600">
+                      Only {line.product.stock} left
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">
+                      {line.product?.stock} in stock
+                    </span>
+                  )}
+                </span>
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">

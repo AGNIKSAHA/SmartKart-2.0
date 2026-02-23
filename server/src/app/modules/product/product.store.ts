@@ -58,7 +58,7 @@ const productSchema = new Schema(
     category: { type: String, required: true },
     shopkeeperId: { type: String, required: false, index: true },
     location: {
-      type: { type: String, enum: ["Point"], default: "Point" },
+      type: { type: String, enum: ["Point"] },
       coordinates: { type: [Number] },
     },
   },
@@ -172,8 +172,9 @@ export const productStore = {
       ];
 
       const results = await ProductModel.aggregate(pipeline).exec();
-      const items = results[0].data;
-      const total = results[0].metadata[0]?.total ?? 0;
+      const facetResult = results[0] || { data: [], metadata: [] };
+      const items = facetResult.data || [];
+      const total = facetResult.metadata?.[0]?.total ?? 0;
       const totalPages = Math.max(1, Math.ceil(total / input.limit));
 
       return {

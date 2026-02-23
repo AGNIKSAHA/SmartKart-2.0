@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 import { useAuthState } from "../features/auth/authHooks";
-import { useUpsertCartItem } from "../features/cart/cartHooks";
+import { useUpsertCartItem, useCart } from "../features/cart/cartHooks";
 import { useProfile } from "../features/profile/profileHooks";
 import type { ConsumerProfile } from "../types/api";
 
@@ -40,6 +40,8 @@ export const AddToCartButton = ({
       ? "Out of Stock"
       : "Add to Cart";
 
+  const { data: cartItems } = useCart(!isShopkeeper);
+
   return (
     <button
       type="button"
@@ -51,10 +53,19 @@ export const AddToCartButton = ({
           return;
         }
 
+        const existingItem = cartItems?.find((i) => i.productId === productId);
+        const newQuantity = (existingItem?.quantity ?? 0) + 1;
+
+        if (stock !== undefined && newQuantity > stock) {
+          toast.error("Quantity exceeds available stock");
+          return;
+        }
+
         try {
-          await upsertCart.mutateAsync({ productId, quantity: 1 });
-        } catch {
-          toast.error("Add to cart failed");
+          await upsertCart.mutateAsync({ productId, quantity: newQuantity });
+          toast.success("Added to cart");
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || "Add to cart failed");
         }
       }}
     >

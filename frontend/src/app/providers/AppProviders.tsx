@@ -8,17 +8,21 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1
-    }
-  }
+      retry: 1,
+    },
+  },
 });
+
+import { GoogleMapsProvider } from "../../providers/GoogleMapsProvider";
 
 export const AppProviders = ({ children }: PropsWithChildren) => {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster position="top-right" />
+        <GoogleMapsProvider>
+          {children}
+          <Toaster position="top-right" />
+        </GoogleMapsProvider>
       </QueryClientProvider>
     </Provider>
   );

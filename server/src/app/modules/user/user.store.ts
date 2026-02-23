@@ -67,7 +67,7 @@ const userSchema = new Schema(
       companyAddress: { type: String, required: false },
       mobileEncrypted: { type: String, required: false },
       location: {
-        type: { type: String, enum: ["Point"], default: "Point" },
+        type: { type: String, enum: ["Point"] },
         coordinates: { type: [Number] },
       },
     },
