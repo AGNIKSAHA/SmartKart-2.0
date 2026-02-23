@@ -19,7 +19,7 @@ export const Pagination = ({
 
   return (
     <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 sm:px-6 mt-4">
-      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row flex-1 items-center justify-between gap-4">
         <div>
           <p className="text-sm text-slate-700">
             Showing{" "}

@@ -44,6 +44,7 @@ export interface ProductEntity {
   price: number;
   stock: number;
   category: string;
+  storeName: string;
   location?: {
     type: "Point";
     coordinates: [number, number];

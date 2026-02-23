@@ -26,6 +26,9 @@ export const ProductDetailsPage = () => {
       />
       <div className="flex flex-col">
         <h1 className="text-3xl font-bold text-slate-900">{product.title}</h1>
+        <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-brand-600">
+          {product.storeName}
+        </p>
         <p className="mt-4 text-slate-600 leading-relaxed">
           {product.description}
         </p>

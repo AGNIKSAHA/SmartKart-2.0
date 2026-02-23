@@ -9,6 +9,7 @@ interface ProductDb {
   price: number;
   stock: number;
   category: string;
+  storeName: string;
   shopkeeperId?: string;
   location?: {
     type: "Point";
@@ -24,6 +25,7 @@ interface ProductWithShopkeeper {
   price: number;
   stock: number;
   category: string;
+  storeName: string;
   shopkeeperId?: string;
 }
 
@@ -56,6 +58,7 @@ const productSchema = new Schema(
     price: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0 },
     category: { type: String, required: true },
+    storeName: { type: String, required: true },
     shopkeeperId: { type: String, required: false, index: true },
     location: {
       type: { type: String, enum: ["Point"] },
@@ -79,6 +82,7 @@ const toEntity = (doc: ProductDb): ProductEntity => ({
   price: doc.price,
   stock: doc.stock,
   category: doc.category,
+  storeName: doc.storeName,
   ...(doc.location ? { location: doc.location } : {}),
 });
 
@@ -90,6 +94,7 @@ const toEntityWithShopkeeper = (doc: ProductDb): ProductWithShopkeeper => ({
   price: doc.price,
   stock: doc.stock,
   category: doc.category,
+  storeName: doc.storeName,
   ...(doc.shopkeeperId ? { shopkeeperId: doc.shopkeeperId } : {}),
 });
 
@@ -101,6 +106,7 @@ const seedProducts: Omit<ProductEntity, "id">[] = [
     price: 69,
     stock: 30,
     category: "fashion",
+    storeName: "Admin Store",
   },
   {
     title: "Wireless Keyboard",
@@ -109,6 +115,7 @@ const seedProducts: Omit<ProductEntity, "id">[] = [
     price: 119,
     stock: 20,
     category: "electronics",
+    storeName: "Admin Store",
   },
   {
     title: "Running Shoes",
@@ -117,6 +124,7 @@ const seedProducts: Omit<ProductEntity, "id">[] = [
     price: 89,
     stock: 45,
     category: "sports",
+    storeName: "Admin Store",
   },
 ];
 

@@ -18,6 +18,7 @@ export const createProductSchema = z.object({
   price: z.number().positive(),
   stock: z.number().int().nonnegative(),
   category: z.enum(PRODUCT_CATEGORIES),
+  storeName: z.string().min(1),
   location: z
     .object({
       lng: z.number().min(-180).max(180),

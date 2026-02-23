@@ -13,6 +13,7 @@ export const ShopkeeperCreateProductPage = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
+  const [storeName, setStoreName] = useState("");
   const [category, setCategory] = useState<ProductCategory>(
     PRODUCT_CATEGORIES[0],
   );
@@ -32,6 +33,7 @@ export const ShopkeeperCreateProductPage = () => {
         imageUrl,
         price: Number(price),
         stock: Number(stock),
+        storeName,
         category,
         ...(location ? { location } : {}),
       });
@@ -151,6 +153,23 @@ export const ShopkeeperCreateProductPage = () => {
             value={stock}
             onChange={(e) => setStock(e.target.value)}
             placeholder="25"
+            required
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="product-store-name"
+            className="mb-1 block text-sm font-medium text-slate-700"
+          >
+            Store Name
+          </label>
+          <input
+            id="product-store-name"
+            name="storeName"
+            className="w-full rounded-lg border border-slate-300 px-4 py-2"
+            value={storeName}
+            onChange={(e) => setStoreName(e.target.value)}
+            placeholder="Awesome Electronics"
             required
           />
         </div>

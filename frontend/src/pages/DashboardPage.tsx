@@ -13,7 +13,7 @@ import {
 import { Loader } from "../components/Loader";
 import { ConfirmModal } from "../components/ConfirmModal";
 import toast from "react-hot-toast";
-import { AlertCircle, Search, Filter } from "lucide-react";
+import { AlertCircle, Search, Filter, ArrowUpDown } from "lucide-react";
 import { Pagination } from "../components/Pagination";
 import { useClientFilter } from "../hooks/useClientFilter";
 import { LocationSelector } from "../components/LocationSelector";
@@ -36,6 +36,7 @@ export const DashboardPage = () => {
   const [editImageUrl, setEditImageUrl] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editStock, setEditStock] = useState("");
+  const [editStoreName, setEditStoreName] = useState("");
   const [editCategory, setEditCategory] = useState<ProductCategory>(
     PRODUCT_CATEGORIES[0],
   );
@@ -43,6 +44,7 @@ export const DashboardPage = () => {
     lng: number;
     lat: number;
   } | null>(null);
+  const [stockSort, setStockSort] = useState<"none" | "asc" | "desc">("none");
 
   // Confirmation modal state
   const [cancelTarget, setCancelTarget] = useState<{
@@ -65,9 +67,13 @@ export const DashboardPage = () => {
     data: productsQuery.data,
     searchFields: ["title", "description"],
   });
-  const filteredProducts = productList.filteredData.filter(
-    (p) => !productList.filter || p.category === productList.filter,
-  );
+  const filteredProducts = productList.filteredData
+    .filter((p) => !productList.filter || p.category === productList.filter)
+    .sort((a, b) => {
+      if (stockSort === "asc") return a.stock - b.stock;
+      if (stockSort === "desc") return b.stock - a.stock;
+      return 0; // Default creation order is handled backend-side via _id parsing
+    });
   const pagedProducts = productList.paginate(filteredProducts);
 
   if (!user) {
@@ -95,6 +101,7 @@ export const DashboardPage = () => {
     price: number;
     stock: number;
     category: string;
+    storeName: string;
     location?: { type: "Point"; coordinates: [number, number] };
   }): void => {
     setEditingProductId(product.id);
@@ -103,6 +110,7 @@ export const DashboardPage = () => {
     setEditImageUrl(product.imageUrl);
     setEditPrice(String(product.price));
     setEditStock(String(product.stock));
+    setEditStoreName(product.storeName);
     setEditCategory(product.category as ProductCategory);
     if (product.location) {
       setEditLocation({
@@ -124,6 +132,7 @@ export const DashboardPage = () => {
           imageUrl: editImageUrl,
           price: Number(editPrice),
           stock: Number(editStock),
+          storeName: editStoreName,
           category: editCategory,
           location: editLocation || undefined,
         },
@@ -339,6 +348,23 @@ export const DashboardPage = () => {
                         ))}
                       </select>
                     </div>
+                    <div className="relative">
+                      <ArrowUpDown className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                      <select
+                        className="pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-brand-600 bg-white w-full sm:w-40"
+                        value={stockSort}
+                        onChange={(e) => {
+                          setStockSort(
+                            e.target.value as "none" | "asc" | "desc",
+                          );
+                          productList.setPage(1);
+                        }}
+                      >
+                        <option value="none">Sort by Stock</option>
+                        <option value="asc">Stock: Low to High</option>
+                        <option value="desc">Stock: High to Low</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -368,6 +394,12 @@ export const DashboardPage = () => {
                             value={editImageUrl}
                             placeholder="Image URL"
                             onChange={(e) => setEditImageUrl(e.target.value)}
+                          />
+                          <input
+                            className="w-full rounded border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                            value={editStoreName}
+                            placeholder="Store Name"
+                            onChange={(e) => setEditStoreName(e.target.value)}
                           />
                           <div className="grid gap-3 sm:grid-cols-3">
                             <input
@@ -451,6 +483,9 @@ export const DashboardPage = () => {
                               </p>
                               <p className="text-sm text-slate-500 line-clamp-2 mt-1">
                                 {product.description}
+                              </p>
+                              <p className="text-sm font-medium text-brand-600 mt-1">
+                                {product.storeName}
                               </p>
                             </div>
 

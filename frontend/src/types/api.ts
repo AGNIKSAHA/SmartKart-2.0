@@ -111,6 +111,7 @@ export interface Product {
   price: number;
   stock: number;
   category: ProductCategory;
+  storeName: string;
   location?: {
     type: "Point";
     coordinates: [number, number];
@@ -125,6 +126,7 @@ export interface CreateProductPayload {
   price: number;
   stock: number;
   category: ProductCategory;
+  storeName: string;
   location?:
     | {
         lng: number;

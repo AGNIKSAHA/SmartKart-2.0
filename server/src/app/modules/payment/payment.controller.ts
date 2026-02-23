@@ -59,44 +59,82 @@ async function processSuccessfulPayment(
     orderId: order.id,
   });
 
-  // Email shopkeepers
-  const shopkeeperIds = [
-    ...new Set(
-      (
-        await Promise.all(
-          order.items.map(async (item) => {
-            const product = await productStore.findByIdWithShopkeeper(
-              item.productId,
-            );
-            return product?.shopkeeperId;
-          }),
-        )
-      ).filter(
-        (value): value is string =>
-          typeof value === "string" && value.length > 0,
-      ),
-    ),
-  ];
+  // Check stock and collect data for shopkeepers
+  const shopkeeperIdToAlerts = new Map<
+    string,
+    { outOfStock: string[]; lowStock: string[] }
+  >();
+  const shopkeeperIds = new Set<string>();
 
-  if (shopkeeperIds.length > 0) {
+  await Promise.all(
+    order.items.map(async (item) => {
+      const product = await productStore.findByIdWithShopkeeper(item.productId);
+      if (product && product.shopkeeperId) {
+        shopkeeperIds.add(product.shopkeeperId);
+
+        // Check stock thresholds
+        if (product.stock === 0) {
+          const alerts = shopkeeperIdToAlerts.get(product.shopkeeperId) || {
+            outOfStock: [],
+            lowStock: [],
+          };
+          alerts.outOfStock.push(product.title);
+          shopkeeperIdToAlerts.set(product.shopkeeperId, alerts);
+        } else if (product.stock <= 5) {
+          const alerts = shopkeeperIdToAlerts.get(product.shopkeeperId) || {
+            outOfStock: [],
+            lowStock: [],
+          };
+          alerts.lowStock.push(`${product.title} (${product.stock} left)`);
+          shopkeeperIdToAlerts.set(product.shopkeeperId, alerts);
+        }
+      }
+    }),
+  );
+
+  if (shopkeeperIds.size > 0) {
     const shopkeepers = await Promise.all(
-      shopkeeperIds.map((id) => userStore.findById(id)),
+      Array.from(shopkeeperIds).map((id) => userStore.findById(id)),
     );
-    const recipientEmails = shopkeepers
-      .filter((shopkeeper): shopkeeper is NonNullable<typeof shopkeeper> =>
-        Boolean(shopkeeper),
-      )
-      .filter((shopkeeper) => shopkeeper.role === "shopkeeper")
-      .map((shopkeeper) => shopkeeper.email);
 
     await Promise.allSettled(
-      recipientEmails.map((email) =>
-        sendEmail({
-          to: email,
+      shopkeepers.map(async (shopkeeper) => {
+        if (!shopkeeper || shopkeeper.role !== "shopkeeper") return;
+
+        const alerts = shopkeeperIdToAlerts.get(shopkeeper.id);
+        const alertMessages: string[] = [];
+
+        if (alerts?.outOfStock.length) {
+          const msg = `OUT OF STOCK: ${alerts.outOfStock.join(", ")}`;
+          alertMessages.push(msg);
+          await notificationStore.create({
+            targetRole: "shopkeeper",
+            title: "Product Out of Stock",
+            message: msg,
+          });
+        }
+
+        if (alerts?.lowStock.length) {
+          const msg = `LOW STOCK ALERT: ${alerts.lowStock.join(", ")}`;
+          alertMessages.push(msg);
+          await notificationStore.create({
+            targetRole: "shopkeeper",
+            title: "Product Low Stock",
+            message: msg,
+          });
+        }
+
+        const alertText =
+          alertMessages.length > 0
+            ? `\n\nSTOCK ALERTS:\n${alertMessages.join("\n")}`
+            : "";
+
+        await sendEmail({
+          to: shopkeeper.email,
           subject: "New paid order received",
-          text: `Customer: ${order.shippingDetails.recipientName}\nMobile: ${order.shippingDetails.mobileNumber}\nAddress: ${order.shippingDetails.address}\nQuantity: ${totalQuantity}\nItems: ${itemQuantities}\nTotal: \$${order.totalAmount.toFixed(2)}\nPayment: Stripe\nOrder ID: ${order.id}`,
-        }),
-      ),
+          text: `Customer: ${order.shippingDetails.recipientName}\nMobile: ${order.shippingDetails.mobileNumber}\nAddress: ${order.shippingDetails.address}\nQuantity: ${totalQuantity}\nItems: ${itemQuantities}\nTotal: \$${order.totalAmount.toFixed(2)}\nPayment: Stripe\nOrder ID: ${order.id}${alertText}`,
+        });
+      }),
     );
   }
 

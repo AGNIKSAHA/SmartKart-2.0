@@ -213,6 +213,9 @@ export const ProductsPage = () => {
               <p className="mt-1 text-sm text-slate-600 line-clamp-2">
                 {product.description}
               </p>
+              <div className="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {product.storeName}
+              </div>
               {product.distanceKm !== undefined && (
                 <div className="mt-2 flex items-center gap-1.5 text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-full w-fit">
                   <MapPin className="h-3 w-3" />
