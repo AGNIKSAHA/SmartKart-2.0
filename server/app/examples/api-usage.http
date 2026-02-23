@@ -1,0 +1,66 @@
+### Register
+POST http://localhost:5000/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Shopkeeper User",
+  "email": "shopkeeper@example.com",
+  "password": "password123",
+  "role": "shopkeeper"
+}
+
+### Login
+POST http://localhost:5000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "shopkeeper@example.com",
+  "password": "password123"
+}
+
+### Verify Email
+POST http://localhost:5000/api/v1/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "shopkeeper@example.com",
+  "token": "paste_token_from_mail_log"
+}
+
+### Forgot Password
+POST http://localhost:5000/api/v1/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "shopkeeper@example.com"
+}
+
+### Update Consumer Profile
+PATCH http://localhost:5000/api/v1/profile/me
+Content-Type: application/json
+
+{
+  "fullName": "John Doe",
+  "deliveryContacts": [
+    { "recipientName": "John Doe", "address": "Home: 12 Main Street" },
+    { "recipientName": "Jane Doe", "address": "Office: 45 Market Road" }
+  ],
+  "mobileNumber": "9876543210",
+  "alternateNumber": "9123456780"
+}
+
+### Create Order
+POST http://localhost:5000/api/v1/orders
+Content-Type: application/json
+
+{
+  "shippingDetails": {
+    "recipientName": "John Doe",
+    "address": "12 Main Street, NY",
+    "mobileNumber": "9876543210",
+    "alternateNumber": "9123456780"
+  }
+}
+
+### Cancel Order
+PATCH http://localhost:5000/api/v1/orders/:orderId/cancel
