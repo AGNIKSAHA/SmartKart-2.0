@@ -1,8 +1,10 @@
 import { type FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
 import { useForgotPassword } from "../features/auth/authHooks";
-import { KeyRound, Mail, ArrowRight } from "lucide-react";
+import { KeyRound } from "lucide-react";
+import { ForgotPasswordForm } from "../components/Auth/ForgotPasswordForm";
 
 export const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -12,8 +14,12 @@ export const ForgotPasswordPage = () => {
     event.preventDefault();
     try {
       await forgot.mutateAsync({ email });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Request failed");
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Request failed");
+      } else {
+        toast.error("Request failed");
+      }
     }
   };
 
@@ -34,54 +40,19 @@ export const ForgotPasswordPage = () => {
             </p>
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-6">
-            <div>
-              <label
-                htmlFor="forgot-email"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Email address
-              </label>
-              <div className="relative mt-2">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Mail className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="forgot-email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full rounded-xl border-0 py-3 pl-10 pr-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-700 sm:text-sm sm:leading-6"
-                  placeholder="john@example.com"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={forgot.isPending}
-              className="flex w-full justify-center rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:opacity-70  transition-all active:scale-[0.98]"
-            >
-              {forgot.isPending ? (
-                "Sending..."
-              ) : (
-                <>
-                  Send Reset Link
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform " />
-                </>
-              )}
-            </button>
-          </form>
+          <ForgotPasswordForm
+            email={email}
+            setEmail={setEmail}
+            onSubmit={onSubmit}
+            isPending={forgot.isPending}
+          />
 
           <div className="mt-8 text-center text-sm text-slate-600 flex flex-col items-center space-y-2">
             <div>
               Remember your password?{" "}
               <Link
                 to="/login"
-                className="font-semibold text-brand-700  transition-colors"
+                className="font-semibold text-brand-700 hover:text-brand-800 transition-colors"
               >
                 Go to login
               </Link>
@@ -91,7 +62,7 @@ export const ForgotPasswordPage = () => {
               Already have a reset token?{" "}
               <Link
                 to="/reset-password"
-                className="font-semibold text-brand-500 hover:text-brand-700"
+                className="font-semibold text-brand-500 hover:text-brand-700 transition-colors"
               >
                 Enter it here
               </Link>

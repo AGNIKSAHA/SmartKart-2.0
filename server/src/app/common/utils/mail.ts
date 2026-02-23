@@ -7,6 +7,15 @@ export interface MailPayload {
   text: string;
 }
 
+interface SmtpOptions {
+  service?: string;
+  auth: {
+    user: string;
+    pass: string;
+  };
+  family?: number;
+}
+
 const transporter = nodemailer.createTransport({
   service: env.MAIL_SERVICE,
   auth: {
@@ -14,7 +23,7 @@ const transporter = nodemailer.createTransport({
     pass: env.EMAIL_PASS,
   },
   family: 4, // Force IPv4 to avoid ENETUNREACH on Node 18+ (Render/Docker)
-} as any);
+} as SmtpOptions as unknown as nodemailer.TransportOptions);
 
 export const sendEmail = async (payload: MailPayload): Promise<void> => {
   await transporter.sendMail({

@@ -1,8 +1,7 @@
 import type { Request, Response } from "express";
 import { AppError } from "../../common/middlewares/error.middleware.js";
 import { sendResponse } from "../../common/utils/response.js";
-import { productStore } from "../product/product.store.js";
-import { cartStore } from "./cart.store.js";
+import { cartService } from "./cart.service.js";
 
 export const cartController = {
   async getCart(req: Request, res: Response): Promise<void> {
@@ -11,17 +10,7 @@ export const cartController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    const cartItems = await cartStore.getByUserId(userId);
-    const items = await Promise.all(
-      cartItems.map(async (item) => {
-        const product = await productStore.findById(item.productId);
-        return {
-          ...item,
-          product
-        };
-      })
-    );
-
+    const items = await cartService.getCart(userId);
     sendResponse(res, 200, "Cart fetched", items);
   },
 
@@ -31,28 +20,11 @@ export const cartController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    const { productId, quantity } = req.body as { productId: string; quantity: number };
-    const product = await productStore.findById(productId);
-
-    if (!product) {
-      throw new AppError("Product not found", 404);
-    }
-
-    if (quantity > product.stock) {
-      throw new AppError("Quantity exceeds stock", 400);
-    }
-
-    const currentItems = await cartStore.getByUserId(userId);
-    const index = currentItems.findIndex((item) => item.productId === productId);
-
-    const nextItems = [...currentItems];
-    if (index >= 0) {
-      nextItems[index] = { productId, quantity };
-    } else {
-      nextItems.push({ productId, quantity });
-    }
-
-    await cartStore.setByUserId(userId, nextItems);
+    const { productId, quantity } = req.body as {
+      productId: string;
+      quantity: number;
+    };
+    const nextItems = await cartService.upsertItem(userId, productId, quantity);
     sendResponse(res, 200, "Cart updated", nextItems);
   },
 
@@ -62,10 +34,11 @@ export const cartController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    const nextItems = (await cartStore.getByUserId(userId))
-      .filter((item) => item.productId !== req.params.productId);
-
-    await cartStore.setByUserId(userId, nextItems);
+    const productId = req.params.productId;
+    if (!productId) {
+      throw new AppError("Product ID is required", 400);
+    }
+    const nextItems = await cartService.removeItem(userId, productId);
     sendResponse(res, 200, "Cart item removed", nextItems);
-  }
+  },
 };

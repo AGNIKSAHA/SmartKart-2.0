@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
 import { useAuthState } from "../features/auth/authHooks";
 import { useUpsertCartItem, useCart } from "../features/cart/cartHooks";
 import { useProfile } from "../features/profile/profileHooks";
@@ -64,8 +65,12 @@ export const AddToCartButton = ({
         try {
           await upsertCart.mutateAsync({ productId, quantity: newQuantity });
           toast.success("Added to cart");
-        } catch (error: any) {
-          toast.error(error.response?.data?.message || "Add to cart failed");
+        } catch (error) {
+          if (isAxiosError(error)) {
+            toast.error(error.response?.data?.message || "Add to cart failed");
+          } else {
+            toast.error("Add to cart failed");
+          }
         }
       }}
     >

@@ -1,24 +1,7 @@
 import type { Request, Response } from "express";
 import { AppError } from "../../common/middlewares/error.middleware.js";
 import { sendResponse } from "../../common/utils/response.js";
-import { productStore } from "./product.store.js";
-import { userStore } from "../user/user.store.js";
-
-const assertShopkeeperProfileComplete = async (
-  shopkeeperId: string,
-): Promise<void> => {
-  const user = await userStore.findById(shopkeeperId);
-  if (!user || user.role !== "shopkeeper") {
-    throw new AppError("Unauthorized", 401);
-  }
-
-  if (!user.shopkeeperProfile) {
-    throw new AppError(
-      "Complete your shopkeeper profile before managing products",
-      400,
-    );
-  }
-};
+import { productService } from "./product.service.js";
 
 export const productController = {
   async list(req: Request, res: Response): Promise<void> {
@@ -39,28 +22,18 @@ export const productController = {
     const lng = req.query.lng ? Number(req.query.lng) : undefined;
     const lat = req.query.lat ? Number(req.query.lat) : undefined;
 
-    if (
-      (minPrice !== undefined && Number.isNaN(minPrice)) ||
-      (maxPrice !== undefined && Number.isNaN(maxPrice))
-    ) {
-      throw new AppError("Invalid price filter", 400);
-    }
+    const data = await productService.list({
+      page,
+      limit,
+      ...(minPrice !== undefined ? { minPrice } : {}),
+      ...(maxPrice !== undefined ? { maxPrice } : {}),
+      ...(search !== undefined ? { search } : {}),
+      ...(category !== undefined ? { category } : {}),
+      ...(lng !== undefined ? { lng } : {}),
+      ...(lat !== undefined ? { lat } : {}),
+    });
 
-    sendResponse(
-      res,
-      200,
-      "Products fetched",
-      await productStore.list({
-        page,
-        limit,
-        ...(minPrice !== undefined ? { minPrice } : {}),
-        ...(maxPrice !== undefined ? { maxPrice } : {}),
-        ...(search ? { search } : {}),
-        ...(category ? { category } : {}),
-        ...(lng !== undefined ? { lng } : {}),
-        ...(lat !== undefined ? { lat } : {}),
-      }),
-    );
+    sendResponse(res, 200, "Products fetched", data);
   },
 
   async getById(req: Request, res: Response): Promise<void> {
@@ -69,10 +42,7 @@ export const productController = {
       throw new AppError("Product id is required", 400);
     }
 
-    const product = await productStore.findById(productId);
-    if (!product) {
-      throw new AppError("Product not found", 404);
-    }
+    const product = await productService.getById(productId);
 
     sendResponse(res, 200, "Product fetched", product);
   },
@@ -83,22 +53,9 @@ export const productController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    const user = await userStore.findById(shopkeeperId);
-    if (!user || user.role !== "shopkeeper") {
-      throw new AppError("Unauthorized", 401);
-    }
+    const products = await productService.listMine(shopkeeperId);
 
-    if (!user.shopkeeperProfile) {
-      sendResponse(res, 200, "My products fetched (profile incomplete)", []);
-      return;
-    }
-
-    sendResponse(
-      res,
-      200,
-      "My products fetched",
-      await productStore.listByShopkeeperId(shopkeeperId),
-    );
+    sendResponse(res, 200, "My products fetched", products);
   },
 
   async create(req: Request, res: Response): Promise<void> {
@@ -107,17 +64,7 @@ export const productController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    await assertShopkeeperProfileComplete(shopkeeperId);
-
-    const payload = { ...req.body };
-    if (payload.location) {
-      payload.location = {
-        type: "Point",
-        coordinates: [payload.location.lng, payload.location.lat],
-      };
-    }
-
-    const product = await productStore.create({ ...payload, shopkeeperId });
+    const product = await productService.create(shopkeeperId, req.body);
     sendResponse(res, 201, "Product created", product);
   },
 
@@ -127,28 +74,16 @@ export const productController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    await assertShopkeeperProfileComplete(shopkeeperId);
     const productId = req.params.id;
     if (!productId) {
       throw new AppError("Product id is required", 400);
     }
 
-    const payload = { ...req.body };
-    if (payload.location) {
-      payload.location = {
-        type: "Point",
-        coordinates: [payload.location.lng, payload.location.lat],
-      };
-    }
-
-    const product = await productStore.updateByShopkeeper(
-      productId,
+    const product = await productService.update(
       shopkeeperId,
-      payload,
+      productId,
+      req.body,
     );
-    if (!product) {
-      throw new AppError("Product not found or not owned by you", 404);
-    }
 
     sendResponse(res, 200, "Product updated", product);
   },
@@ -159,19 +94,12 @@ export const productController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    await assertShopkeeperProfileComplete(shopkeeperId);
     const productId = req.params.id;
     if (!productId) {
       throw new AppError("Product id is required", 400);
     }
 
-    const removed = await productStore.removeByShopkeeper(
-      productId,
-      shopkeeperId,
-    );
-    if (!removed) {
-      throw new AppError("Product not found or not owned by you", 404);
-    }
+    await productService.remove(shopkeeperId, productId);
 
     sendResponse(res, 200, "Product removed", null);
   },

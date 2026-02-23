@@ -1,4 +1,10 @@
-import { Schema, model, type FilterQuery, type Types } from "mongoose";
+import {
+  Schema,
+  model,
+  type FilterQuery,
+  type Types,
+  type PipelineStage,
+} from "mongoose";
 import type { ProductEntity } from "../../common/types/domain.types.js";
 
 interface ProductDb {
@@ -161,7 +167,7 @@ export const productStore = {
 
     if (input.lng !== undefined && input.lat !== undefined) {
       // Geo-spatial search using aggregation
-      const pipeline: any[] = [
+      const pipeline: PipelineStage[] = [
         {
           $geoNear: {
             near: { type: "Point", coordinates: [input.lng, input.lat] },
@@ -186,7 +192,7 @@ export const productStore = {
       const totalPages = Math.max(1, Math.ceil(total / input.limit));
 
       return {
-        items: items.map((item: any) => ({
+        items: items.map((item: ProductDb & { distanceMeters: number }) => ({
           ...toEntity(item),
           distanceKm: item.distanceMeters / 1000,
         })),

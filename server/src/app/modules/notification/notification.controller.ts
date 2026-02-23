@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { AppError } from "../../common/middlewares/error.middleware.js";
 import { sendResponse } from "../../common/utils/response.js";
-import { notificationStore } from "./notification.store.js";
+import { notificationService } from "./notification.service.js";
 
 export const notificationController = {
   async list(req: Request, res: Response): Promise<void> {
@@ -10,7 +10,7 @@ export const notificationController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    const data = await notificationStore.listByRole(role);
+    const data = await notificationService.listByRole(role);
     sendResponse(res, 200, "Notifications fetched", data);
   },
 
@@ -20,7 +20,7 @@ export const notificationController = {
       throw new AppError("Unauthorized", 401);
     }
 
-    const count = await notificationStore.unreadCountByRole(role);
+    const count = await notificationService.unreadCountByRole(role);
     sendResponse(res, 200, "Unread count fetched", { count });
   },
 
@@ -35,11 +35,8 @@ export const notificationController = {
       throw new AppError("Notification id is required", 400);
     }
 
-    const item = await notificationStore.markRead(notificationId, role);
-    if (!item) {
-      throw new AppError("Notification not found", 404);
-    }
+    const item = await notificationService.markRead(notificationId, role);
 
     sendResponse(res, 200, "Notification marked as read", item);
-  }
+  },
 };
