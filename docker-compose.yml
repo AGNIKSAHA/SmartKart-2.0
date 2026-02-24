@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: smartkart-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - smartkart-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: smartkart-server
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/smartkart
+      - CORS_ORIGIN=http://localhost:5173
+    env_file:
+      - ./server/.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - smartkart-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smartkart-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    networks:
+      - smartkart-network
+
+networks:
+  smartkart-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
