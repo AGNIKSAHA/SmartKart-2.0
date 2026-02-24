@@ -114,6 +114,8 @@ export const DashboardProducts = () => {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <input
+              id="search-products"
+              name="productSearch"
               type="text"
               placeholder="Search products..."
               className="pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-brand-600 focus:ring-1 focus:ring-brand-600 w-full sm:w-48"
@@ -127,6 +129,8 @@ export const DashboardProducts = () => {
           <div className="relative">
             <Filter className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <select
+              id="filter-category"
+              name="categoryFilter"
               className="pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-brand-600 bg-white w-full sm:w-40 capitalize"
               value={productList.filter}
               onChange={(e) => {
@@ -145,6 +149,8 @@ export const DashboardProducts = () => {
           <div className="relative">
             <ArrowUpDown className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <select
+              id="sort-stock"
+              name="stockSort"
               className="pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-brand-600 bg-white w-full sm:w-40"
               value={stockSort}
               onChange={(e) => {
@@ -169,12 +175,16 @@ export const DashboardProducts = () => {
             {editingProductId === product.id ? (
               <div className="space-y-3">
                 <input
+                  id={`edit-title-${product.id}`}
+                  name="title"
                   className="w-full rounded border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   value={editTitle}
                   placeholder="Product Title"
                   onChange={(e) => setEditTitle(e.target.value)}
                 />
                 <textarea
+                  id={`edit-description-${product.id}`}
+                  name="description"
                   className="w-full rounded border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   rows={3}
                   placeholder="Description"
@@ -182,12 +192,16 @@ export const DashboardProducts = () => {
                   onChange={(e) => setEditDescription(e.target.value)}
                 />
                 <input
+                  id={`edit-image-${product.id}`}
+                  name="imageUrl"
                   className="w-full rounded border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   value={editImageUrl}
                   placeholder="Image URL"
                   onChange={(e) => setEditImageUrl(e.target.value)}
                 />
                 <input
+                  id={`edit-store-${product.id}`}
+                  name="storeName"
                   className="w-full rounded border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   value={editStoreName}
                   placeholder="Store Name"
@@ -195,6 +209,8 @@ export const DashboardProducts = () => {
                 />
                 <div className="grid gap-3 sm:grid-cols-3">
                   <input
+                    id={`edit-price-${product.id}`}
+                    name="price"
                     className="rounded border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                     type="number"
                     min={1}
@@ -203,6 +219,8 @@ export const DashboardProducts = () => {
                     onChange={(e) => setEditPrice(e.target.value)}
                   />
                   <input
+                    id={`edit-stock-${product.id}`}
+                    name="stock"
                     className="rounded border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                     type="number"
                     min={0}
@@ -211,6 +229,8 @@ export const DashboardProducts = () => {
                     onChange={(e) => setEditStock(e.target.value)}
                   />
                   <select
+                    id={`edit-category-${product.id}`}
+                    name="category"
                     className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 capitalize bg-white"
                     value={editCategory}
                     onChange={(e) =>

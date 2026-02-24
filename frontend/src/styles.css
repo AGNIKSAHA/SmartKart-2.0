@@ -31,3 +31,62 @@ button:disabled {
     transform: scale(1);
   }
 }
+
+
+gmp-place-autocomplete,
+gmp-place-autocomplete:focus,
+gmp-place-autocomplete:focus-within,
+gmp-place-autocomplete:focus-visible,
+.gmp-search-box,
+.gmp-search-box:focus,
+.gmp-search-box:focus-within,
+.gmp-search-box:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+  display: block;
+  width: 100%;
+}
+
+/* 2. Strip borders from everything inside */
+gmp-place-autocomplete *,
+.gmp-search-box * {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 3. Style the actual input via ::part() — both tag + class selectors */
+gmp-place-autocomplete::part(input),
+.gmp-search-box::part(input) {
+  width: 100%;
+  height: 3.25rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.75rem;
+  padding: 0 1rem 0 2.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e293b;
+  transition: border-color 0.2s ease;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 4. Override Google's blue focus ring on the input */
+gmp-place-autocomplete::part(input):focus,
+gmp-place-autocomplete::part(input):focus-visible,
+gmp-place-autocomplete::part(input):active,
+.gmp-search-box::part(input):focus,
+.gmp-search-box::part(input):focus-visible,
+.gmp-search-box::part(input):active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* 5. Subtle hover */
+gmp-place-autocomplete::part(input):hover,
+.gmp-search-box::part(input):hover {
+  border-color: #cbd5e1 !important;
+}

@@ -21,7 +21,7 @@ export const CheckoutSuccessPage = () => {
   if (isError || !data) {
     return (
       <section className="flex min-h-[60vh] flex-col items-center justify-center">
-        <div className="mx-auto max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-lg">
+        <div className="mx-auto max-w-md rounded-2xl border border-red-200 bg-red-50 p-8 text-center ">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
             <svg
               className="h-8 w-8 text-red-500"
@@ -77,8 +77,8 @@ export const CheckoutSuccessPage = () => {
         </div>
       )}
 
-      <div className="mx-auto max-w-lg rounded-2xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-10 text-center shadow-xl">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg">
+      <div className="mx-auto max-w-lg rounded-2xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-10 text-center ">
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-500 ">
           <svg
             className="h-10 w-10 text-white"
             fill="none"
@@ -103,7 +103,7 @@ export const CheckoutSuccessPage = () => {
         </p>
 
         {data.orderId && (
-          <div className="mt-4 rounded-lg bg-white/70 px-4 py-3 shadow-inner">
+          <div className="mt-4 rounded-lg bg-white/70 px-4 py-3 ">
             <p className="text-sm font-medium text-slate-500">Order ID</p>
             <p className="mt-0.5 font-mono text-sm font-bold text-slate-700">
               {data.orderId}
@@ -121,7 +121,7 @@ export const CheckoutSuccessPage = () => {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             to="/dashboard"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-2.5 font-semibold text-white shadow-md transition hover:from-green-600 hover:to-emerald-600 hover:shadow-lg"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-2.5 font-semibold text-white transition hover:from-green-600 hover:to-emerald-600 hover:"
           >
             <svg
               className="h-4 w-4"
@@ -140,7 +140,7 @@ export const CheckoutSuccessPage = () => {
           </Link>
           <Link
             to="/products"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-2.5 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-2.5 font-semibold text-slate-700 transition hover:bg-slate-50 hover:"
           >
             Continue Shopping
           </Link>

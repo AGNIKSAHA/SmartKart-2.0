@@ -35,7 +35,7 @@ export const Pagination = ({
         </div>
         <div>
           <nav
-            className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+            className="isolate inline-flex -space-x-px rounded-md "
             aria-label="Pagination"
           >
             <button

@@ -108,7 +108,8 @@ const seedProducts: Omit<ProductEntity, "id">[] = [
   {
     title: "Premium Hoodie",
     description: "Heavyweight cotton hoodie for daily wear.",
-    imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
+    imageUrl:
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=800",
     price: 69,
     stock: 30,
     category: "fashion",
@@ -117,7 +118,8 @@ const seedProducts: Omit<ProductEntity, "id">[] = [
   {
     title: "Wireless Keyboard",
     description: "Mechanical feel keyboard with low-latency pairing.",
-    imageUrl: "https://images.unsplash.com/photo-1517336714739-489689fd1ca8",
+    imageUrl:
+      "https://images.unsplash.com/photo-1517336714739-489689fd1ca8?auto=format&fit=crop&q=80&w=800",
     price: 119,
     stock: 20,
     category: "electronics",
@@ -126,7 +128,8 @@ const seedProducts: Omit<ProductEntity, "id">[] = [
   {
     title: "Running Shoes",
     description: "Cushioned sole designed for long sessions.",
-    imageUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+    imageUrl:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800",
     price: 89,
     stock: 45,
     category: "sports",

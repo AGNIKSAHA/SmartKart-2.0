@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef } from "react";
-import { GoogleMap, MarkerF, Autocomplete } from "@react-google-maps/api";
+import { GoogleMap, MarkerF } from "@react-google-maps/api";
 import { Loader } from "./Loader";
 import { CreditCard, MapPin, X, Check, Search } from "lucide-react";
 import { useGoogleMaps } from "../providers/GoogleMapsProvider";
@@ -21,10 +21,14 @@ const mapOptions: google.maps.MapOptions = {
   fullscreenControl: false,
   zoomControl: true,
   styles: [
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
     {
-      featureType: "all",
+      featureType: "road",
       elementType: "geometry",
-      stylers: [{ color: "#f5f5f5" }],
+      stylers: [{ color: "#ffffff" }],
     },
     {
       featureType: "water",
@@ -44,7 +48,6 @@ export const LocationSelector = ({
   onLocationSelect,
 }: LocationSelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useGoogleMaps();
@@ -72,27 +75,6 @@ export const LocationSelector = ({
     }
   }, []);
 
-  const onAutocompleteLoad = (ref: google.maps.places.Autocomplete) => {
-    autocompleteRef.current = ref;
-  };
-
-  const onPlaceChanged = () => {
-    if (autocompleteRef.current) {
-      const place = autocompleteRef.current.getPlace();
-      const location = place?.geometry?.location;
-
-      if (location) {
-        const newPos = {
-          lat: location.lat(),
-          lng: location.lng(),
-        };
-        setMarker(newPos);
-        setMapCenter(newPos);
-        mapRef.current?.panTo(newPos);
-      }
-    }
-  };
-
   const handleConfirm = () => {
     onLocationSelect(marker || mapCenter);
     setIsOpen(false);
@@ -104,7 +86,7 @@ export const LocationSelector = ({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-brand-100 hover:bg-slate-50 active:scale-[0.98]"
+        className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-brand-500 hover:bg-slate-50 active:scale-[0.98]"
       >
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
@@ -112,146 +94,168 @@ export const LocationSelector = ({
           </div>
           <div className="text-left">
             <p className="text-sm font-bold text-slate-900">
-              {marker ? "Location Selected" : "Select Location"}
+              {marker ? "Delivery Pin Set" : "Select Location"}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               {marker
                 ? `${marker.lat.toFixed(4)}, ${marker.lng.toFixed(4)}`
-                : "Click to search or pick on map"}
+                : "Tap to set destination"}
             </p>
           </div>
         </div>
-        <div className="h-2 w-2 rounded-full bg-brand-500" />
+        <Search className="h-4 w-4 text-slate-300" />
       </button>
 
       {/* Modal Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-0 sm:p-4">
           <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="relative w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-300">
+          <div className="relative z-[5001] flex flex-col w-full max-w-2xl bg-white sm:rounded-3xl animate-in zoom-in-95 duration-300 overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 p-5">
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-brand-50 p-2 text-brand-500 font-bold">
-                  <MapPin className="h-5 w-5" />
+            <div className="p-6 border-b border-slate-100">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-brand-50 p-2 text-brand-600">
+                    <MapPin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      Pin Location
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Search or tap the map
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    Pick Location
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Search address or drop a pin
-                  </p>
-                </div>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
+
+              {/* Robust Search Box */}
+              {isLoaded && !loadError && (
+                <div className="relative w-full z-10">
+                  {/* Search icon */}
+                  <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 z-20 text-slate-400">
+                    <Search className="h-4 w-4" />
+                  </div>
+                  {/* Google PlaceAutocomplete mounts here */}
+                  <div
+                    className="w-full"
+                    ref={(el) => {
+                      if (el && el.children.length === 0) {
+                        el.innerHTML = "";
+                        const autocomplete =
+                          new google.maps.places.PlaceAutocompleteElement({});
+                        autocomplete.classList.add("gmp-search-box");
+                        autocomplete.setAttribute("id", "location-search-box");
+                        autocomplete.setAttribute("name", "locationSearch");
+                        autocomplete.addEventListener(
+                          "gmp-placeselect",
+                          async ({ place }: any) => {
+                            if (place) {
+                              await place.fetchFields({
+                                fields: ["geometry", "location"],
+                              });
+                              const location = place.location;
+                              if (location) {
+                                const newPos = {
+                                  lat: location.lat(),
+                                  lng: location.lng(),
+                                };
+                                setMarker(newPos);
+                                setMapCenter(newPos);
+                                mapRef.current?.panTo(newPos);
+                                mapRef.current?.setZoom(17);
+                              }
+                            }
+                          },
+                        );
+                        el.appendChild(autocomplete);
+                      }
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Modal Content / Map Area */}
-            <div className="p-4 space-y-4 flex-1 overflow-y-auto">
-              {isLoaded && !loadError && (
-                <div className="relative">
-                  <Autocomplete
-                    onLoad={onAutocompleteLoad}
-                    onPlaceChanged={onPlaceChanged}
-                  >
-                    <div className="relative group">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
-                      <input
-                        type="text"
-                        placeholder="Search for an area, building or street..."
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none ring-brand-500/20 transition-all focus:border-brand-500 focus:bg-white focus:ring-4"
-                      />
+            {/* Map Body */}
+            <div className="relative bg-slate-50" style={{ height: "450px" }}>
+              {isLoaded && !loadError ? (
+                <GoogleMap
+                  mapContainerStyle={{ width: "100%", height: "450px" }}
+                  center={mapCenter}
+                  zoom={15}
+                  onLoad={onMapLoad}
+                  onClick={onMapClick}
+                  options={mapOptions}
+                >
+                  {marker && <MarkerF position={marker} />}
+                </GoogleMap>
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  {loadError ? (
+                    <div className="text-center p-8">
+                      <CreditCard className="mx-auto h-12 w-12 text-red-200 mb-4" />
+                      <p className="text-sm font-bold text-slate-800">
+                        Map System Offline
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Please verify API key & Billing
+                      </p>
                     </div>
-                  </Autocomplete>
-                </div>
-              )}
-
-              {!isLoaded && !loadError && (
-                <div className="flex h-[450px] items-center justify-center rounded-2xl bg-slate-50">
-                  <Loader label="Opening Map Navigator..." />
-                </div>
-              )}
-
-              {loadError && (
-                <div className="flex h-[450px] flex-col items-center justify-center rounded-2xl bg-red-50 p-8 text-center text-red-800">
-                  <CreditCard className="mb-4 h-12 w-12 text-red-400" />
-                  <h4 className="text-lg font-bold">Satellite Link Failed</h4>
-                  <p className="mt-2 text-sm opacity-80 text-center max-w-xs">
-                    Please ensure Billing is enabled on Google Cloud and Places
-                    API is active.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setMarker(defaultCenter);
-                      setMapCenter(defaultCenter);
-                    }}
-                    className="mt-6 rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-100 transition-all hover:bg-brand-700"
-                  >
-                    Use Fallback: KIET Campus
-                  </button>
-                </div>
-              )}
-
-              {isLoaded && !loadError && (
-                <div className="relative rounded-2xl border border-slate-100 shadow-sm overflow-hidden ring-1 ring-slate-100">
-                  <GoogleMap
-                    mapContainerStyle={mapContainerStyle}
-                    center={mapCenter}
-                    zoom={15}
-                    onLoad={onMapLoad}
-                    onClick={onMapClick}
-                    options={mapOptions}
-                  >
-                    {marker && <MarkerF position={marker} />}
-                  </GoogleMap>
-
-                  {!marker && (
-                    <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-none">
-                      <div className="rounded-full bg-slate-900/90 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md shadow-xl">
-                        Tap any point on the map to drop pin
-                      </div>
-                    </div>
+                  ) : (
+                    <Loader label="Connecting to Satellites..." />
                   )}
                 </div>
               )}
+
+              {!marker && isLoaded && !loadError && (
+                <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none">
+                  <div className="bg-slate-900/90 text-white text-[11px] font-bold px-4 py-2 rounded-full backdrop-blur-sm">
+                    Tap the map to Drop delivery pin
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="flex items-center justify-between bg-white p-5 px-6 border-t border-slate-100">
-              <div className="text-xs text-slate-500">
-                {marker ? (
-                  <span className="flex items-center gap-1.5 font-bold text-brand-500">
-                    <Check className="h-4 w-4" /> Position locked
-                  </span>
-                ) : (
-                  "Choose a location to continue"
-                )}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-xl px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirm}
-                  className="flex items-center gap-2 rounded-xl bg-brand-500 px-8 py-3 text-sm font-bold text-white transition-all active:scale-95 shadow-lg shadow-brand-100"
-                >
-                  Confirm Choice
-                </button>
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-100 bg-white">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    Position Status
+                  </p>
+                  <p className="text-sm font-bold text-slate-900 mt-0.5">
+                    {marker ? (
+                      <span className="text-brand-600">Location Locked</span>
+                    ) : (
+                      <span className="text-slate-400">Not Picked</span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex w-full sm:w-auto gap-2">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-50 text-slate-600 text-sm font-bold hover:bg-slate-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirm}
+                    disabled={!marker}
+                    className="flex-1 sm:flex-none px-8 py-3 rounded-xl bg-brand-500 text-white text-sm font-bold hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    Confirm Choice
+                  </button>
+                </div>
               </div>
             </div>
           </div>

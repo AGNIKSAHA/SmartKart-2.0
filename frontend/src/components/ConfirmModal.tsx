@@ -60,7 +60,7 @@ export const ConfirmModal = ({
       }}
     >
       <div
-        className="mx-4 w-full max-w-md animate-[fadeScaleIn_0.2s_ease-out] rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+        className="mx-4 w-full max-w-md animate-[fadeScaleIn_0.2s_ease-out] rounded-2xl border border-slate-200 bg-white p-6 "
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"

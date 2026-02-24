@@ -33,7 +33,7 @@ export const ProductList = ({ products, pagination, setPage }: Props) => {
             className="relative rounded-2xl border border-slate-200 bg-white p-4"
           >
             {product.stock === 0 && (
-              <span className="absolute right-3 top-3 z-10 rounded-full bg-red-600 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow">
+              <span className="absolute right-3 top-3 z-10 rounded-full bg-red-600 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white ">
                 Out of Stock
               </span>
             )}

@@ -6,8 +6,8 @@ export const CheckoutCancelPage = () => {
 
   return (
     <section className="flex min-h-[60vh] flex-col items-center justify-center">
-      <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-10 text-center shadow-xl">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg">
+      <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-10 text-center ">
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 ">
           <svg
             className="h-10 w-10 text-white"
             fill="none"
@@ -32,7 +32,7 @@ export const CheckoutCancelPage = () => {
         </p>
 
         {orderId && (
-          <div className="mt-4 rounded-lg bg-white/70 px-4 py-3 shadow-inner">
+          <div className="mt-4 rounded-lg bg-white/70 px-4 py-3 ">
             <p className="text-sm text-slate-500">
               Your order{" "}
               <span className="font-mono font-bold text-slate-700">
@@ -46,7 +46,7 @@ export const CheckoutCancelPage = () => {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             to="/cart"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-2.5 font-semibold text-white shadow-md transition hover:from-amber-600 hover:to-orange-600 hover:shadow-lg"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-2.5 font-semibold text-white transition hover:from-amber-600 hover:to-orange-600 hover:"
           >
             <svg
               className="h-4 w-4"
@@ -65,7 +65,7 @@ export const CheckoutCancelPage = () => {
           </Link>
           <Link
             to="/products"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-2.5 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-2.5 font-semibold text-slate-700 transition hover:bg-slate-50 hover:"
           >
             Browse Products
           </Link>

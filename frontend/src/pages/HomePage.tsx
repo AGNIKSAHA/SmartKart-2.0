@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export const HomePage = () => {
   return (
-    <section className="grid gap-8 rounded-3xl border border-brand-100 bg-white p-8 shadow-soft md:grid-cols-2 md:p-12">
+    <section className="grid gap-8 rounded-3xl border border-brand-100 bg-white p-8 md:grid-cols-2 md:p-12">
       <div>
         <p className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
           New Season Drop

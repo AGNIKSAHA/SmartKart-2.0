@@ -95,7 +95,7 @@ export const ProductsPage = () => {
         <h1 className="text-2xl font-bold">Search Products</h1>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 ">
         <div className="flex items-center gap-3 mb-4 text-slate-800">
           <Navigation className="h-5 w-5 text-brand-600" />
           <h2 className="font-semibold text-lg">Your Current Location</h2>

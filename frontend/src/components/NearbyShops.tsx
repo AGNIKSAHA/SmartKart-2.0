@@ -116,7 +116,7 @@ export const NearbyShops = () => {
           {shops?.map((shop) => (
             <div
               key={shop.id}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-brand-300 hover:shadow-lg"
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-brand-300 hover:"
             >
               <div className="flex items-start justify-between">
                 <div>

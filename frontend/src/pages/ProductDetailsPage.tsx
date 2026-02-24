@@ -48,7 +48,7 @@ export const ProductDetailsPage = () => {
             <AddToCartButton
               productId={product.id}
               stock={product.stock}
-              className="flex-1 rounded-xl bg-brand-500 px-6 py-4 text-white font-bold shadow-lg shadow-brand-100 hover:bg-brand-700 transition-all active:scale-[0.98]"
+              className="flex-1 rounded-xl bg-brand-500 px-6 py-4 text-white font-bold -100 hover:bg-brand-700 transition-all active:scale-[0.98]"
             />
             {product.location?.coordinates && (
               <a

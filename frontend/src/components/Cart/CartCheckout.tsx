@@ -212,7 +212,7 @@ export const CartCheckout = ({ total }: Props) => {
 
       <button
         type="button"
-        className="mt-5 flex w-full items-center justify-center gap-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
+        className="mt-5 flex w-full items-center justify-center gap-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-base font-semibold text-white transition-all hover:from-indigo-700 hover:to-purple-700 hover:disabled:opacity-60 disabled:cursor-not-allowed"
         disabled={checkoutSession.isPending}
         onClick={onPayWithStripe}
       >

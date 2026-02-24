@@ -1,5 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "./env";
+import { store } from "../app/store";
+import { clearUser } from "../features/auth/authSlice";
 
 export const http = axios.create({
   baseURL: API_BASE_URL,
@@ -29,7 +31,10 @@ http.interceptors.response.use(
     const originalRequest = error.config;
 
     // Prevent infinite loop if refresh endpoint itself fails
-    if (originalRequest?.url === "/auth/refresh") {
+    if (
+      originalRequest?.url === "/auth/refresh" ||
+      originalRequest?.url?.endsWith("/auth/refresh")
+    ) {
       return Promise.reject(error);
     }
 
@@ -58,8 +63,9 @@ http.interceptors.response.use(
         isRefreshing = false;
         processQueue(refreshError);
 
-        // If refresh fails, we could potentially force log out
-        // For now, we reject the promise
+        // If refresh fails, force log out
+        store.dispatch(clearUser());
+
         return Promise.reject(refreshError);
       }
     }

@@ -57,7 +57,7 @@ export const VerifyEmailPage = () => {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-900/5 sm:rounded-3xl">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white ring-1 ring-slate-900/5 sm:rounded-3xl">
         <div className="p-8 sm:p-10">
           <div className="mb-8 text-center">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-700">

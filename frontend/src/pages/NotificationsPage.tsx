@@ -1,3 +1,4 @@
+import { useAuthState } from "../features/auth/authHooks";
 import {
   useMarkNotificationRead,
   useNotifications,
@@ -10,8 +11,9 @@ import { NotificationFilters } from "../components/Notifications/NotificationFil
 import { NotificationList } from "../components/Notifications/NotificationList";
 
 export const NotificationsPage = () => {
-  const notificationsQuery = useNotifications(true);
-  const unreadQuery = useUnreadNotificationsCount(true);
+  const { user } = useAuthState();
+  const notificationsQuery = useNotifications(!!user);
+  const unreadQuery = useUnreadNotificationsCount(!!user);
   const markRead = useMarkNotificationRead();
 
   const notifications = notificationsQuery.data ?? [];
