@@ -30,7 +30,6 @@ http.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Prevent infinite loop if refresh endpoint itself fails
     if (
       originalRequest?.url === "/auth/refresh" ||
       originalRequest?.url?.endsWith("/auth/refresh")
