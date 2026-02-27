@@ -14,15 +14,19 @@ const queryClient = new QueryClient({
 });
 
 import { GoogleMapsProvider } from "../../providers/GoogleMapsProvider";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { GOOGLE_CLIENT_ID } from "../../utils/env";
 
 export const AppProviders = ({ children }: PropsWithChildren) => {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <GoogleMapsProvider>
-          {children}
-          <Toaster position="top-right" />
-        </GoogleMapsProvider>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <GoogleMapsProvider>
+            {children}
+            <Toaster position="top-right" />
+          </GoogleMapsProvider>
+        </GoogleOAuthProvider>
       </QueryClientProvider>
     </Provider>
   );

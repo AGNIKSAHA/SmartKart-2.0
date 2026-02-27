@@ -4,6 +4,7 @@ import { AppError } from "../../common/middlewares/error.middleware.js";
 import { sendResponse } from "../../common/utils/response.js";
 import { authService } from "./auth.service.js";
 import { userStore } from "../user/user.store.js";
+import type { UserRole } from "../../common/types/auth.types.js";
 
 const baseCookieOptions = {
   httpOnly: true,
@@ -57,6 +58,20 @@ export const authController = {
     const { user, tokens } = await authService.login(req.body);
     setAuthCookies(res, tokens);
     sendResponse(res, 200, "Login successful", user);
+  },
+
+  async googleLogin(req: Request, res: Response): Promise<void> {
+    const { idToken, role } = req.body as { idToken: string; role?: UserRole };
+    const result = await authService.googleLogin(idToken, role);
+
+    // New user with no role selected yet — signal frontend to show role picker
+    if ("needsRole" in result) {
+      sendResponse(res, 200, "NEEDS_ROLE", { needsRole: true });
+      return;
+    }
+
+    setAuthCookies(res, result.tokens);
+    sendResponse(res, 201, "Google login successful", result.user);
   },
 
   async refresh(req: Request, res: Response): Promise<void> {

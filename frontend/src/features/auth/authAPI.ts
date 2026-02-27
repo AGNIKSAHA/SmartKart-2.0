@@ -6,7 +6,7 @@ import type {
   LoginPayload,
   ResetPasswordPayload,
   User,
-  VerifyEmailPayload
+  VerifyEmailPayload,
 } from "../../types/api";
 
 export const authApi = {
@@ -15,6 +15,12 @@ export const authApi = {
   },
   login(payload: LoginPayload): Promise<User> {
     return unwrap(http.post("/auth/login", payload));
+  },
+  googleLogin(payload: {
+    idToken: string;
+    role?: string;
+  }): Promise<User | { needsRole: true }> {
+    return unwrap(http.post("/auth/google-login", payload));
   },
   me(): Promise<User> {
     return unwrap(http.get("/auth/me"));
@@ -36,5 +42,5 @@ export const authApi = {
   },
   resetPassword(payload: ResetPasswordPayload): Promise<null> {
     return unwrap(http.post("/auth/reset-password", payload));
-  }
+  },
 };

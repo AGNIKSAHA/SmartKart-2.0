@@ -10,7 +10,9 @@ interface UserDb {
   _id: Types.ObjectId;
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string | undefined;
+  googleId?: string | undefined;
+  avatar?: string | undefined;
   role: UserRole;
   createdAt: Date;
   isEmailVerified: boolean;
@@ -21,21 +23,23 @@ interface UserDb {
       address: string;
     }>;
     mobileEncrypted: string;
-    alternateMobileEncrypted?: string;
+    alternateMobileEncrypted?: string | undefined;
   };
   shopkeeperProfile?: {
     companyName: string;
     companyAddress: string;
     mobileEncrypted: string;
-    location?: {
-      type: "Point";
-      coordinates: [number, number];
-    };
+    location?:
+      | {
+          type: "Point";
+          coordinates: [number, number];
+        }
+      | undefined;
   };
-  emailVerificationTokenHash?: string;
-  emailVerificationExpiresAt?: Date;
-  passwordResetTokenHash?: string;
-  passwordResetExpiresAt?: Date;
+  emailVerificationTokenHash?: string | undefined;
+  emailVerificationExpiresAt?: Date | undefined;
+  passwordResetTokenHash?: string | undefined;
+  passwordResetExpiresAt?: Date | undefined;
 }
 
 const userSchema = new Schema(
@@ -48,7 +52,9 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    passwordHash: { type: String, required: true },
+    passwordHash: { type: String, required: false },
+    googleId: { type: String, required: false, unique: true, sparse: true },
+    avatar: { type: String, required: false },
     role: { type: String, enum: ["shopkeeper", "consumer"], required: true },
     isEmailVerified: { type: Boolean, required: true, default: false },
     consumerProfile: {
@@ -131,10 +137,12 @@ const toEntity = (doc: UserDb): UserEntity => {
     id: doc._id.toString(),
     name: doc.name,
     email: doc.email,
-    passwordHash: doc.passwordHash,
     role: doc.role,
     createdAt: doc.createdAt.toISOString(),
     isEmailVerified: doc.isEmailVerified,
+    ...(doc.passwordHash ? { passwordHash: doc.passwordHash } : {}),
+    ...(doc.googleId ? { googleId: doc.googleId } : {}),
+    ...(doc.avatar ? { avatar: doc.avatar } : {}),
     ...(consumerProfile ? { consumerProfile } : {}),
     ...(shopkeeperProfile ? { shopkeeperProfile } : {}),
     ...(doc.emailVerificationTokenHash
@@ -173,6 +181,11 @@ export const userStore = {
     const user = await UserModel.findOne({ email: email.toLowerCase() })
       .lean<UserDb>()
       .exec();
+    return user ? toEntity(user) : undefined;
+  },
+
+  async findByGoogleId(googleId: string): Promise<UserEntity | undefined> {
+    const user = await UserModel.findOne({ googleId }).lean<UserDb>().exec();
     return user ? toEntity(user) : undefined;
   },
 

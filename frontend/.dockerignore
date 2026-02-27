@@ -1,6 +1,6 @@
 node_modules
 dist
-.env
+# .env
 .npm_logs.txt
 *.md
 .git

@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import { env } from "../../common/config/env.js";
 import type { UserRole } from "../../common/types/auth.types.js";
 import type { UserEntity } from "../../common/types/domain.types.js";
@@ -41,11 +42,16 @@ interface AuthUserResponse {
   role: UserRole;
   createdAt: string;
   isEmailVerified: boolean;
+  avatar?: string | undefined;
 }
 
 interface AuthResult {
   user: AuthUserResponse;
   tokens: SessionTokens;
+}
+
+interface NeedsRoleResult {
+  needsRole: true;
 }
 
 const toSafeUser = (user: UserEntity): AuthUserResponse => ({
@@ -55,7 +61,18 @@ const toSafeUser = (user: UserEntity): AuthUserResponse => ({
   role: user.role,
   createdAt: user.createdAt,
   isEmailVerified: user.isEmailVerified,
+  ...(user.avatar ? { avatar: user.avatar } : {}),
 });
+
+const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+
+const verifyGoogleToken = async (idToken: string) => {
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: env.GOOGLE_CLIENT_ID,
+  });
+  return ticket.getPayload();
+};
 
 const createSessionTokens = async (
   user: UserEntity,
@@ -139,6 +156,13 @@ export const authService = {
       throw new AppError("Invalid credentials", 401);
     }
 
+    if (!user.passwordHash) {
+      throw new AppError(
+        "This account uses social login. Please sign in with Google.",
+        403,
+      );
+    }
+
     const validPassword = await bcrypt.compare(
       input.password,
       user.passwordHash,
@@ -149,6 +173,45 @@ export const authService = {
 
     if (!user.isEmailVerified) {
       throw new AppError("Please verify your email before login", 403);
+    }
+
+    return { user: toSafeUser(user), tokens: await createSessionTokens(user) };
+  },
+
+  async googleLogin(
+    idToken: string,
+    role?: UserRole,
+  ): Promise<AuthResult | NeedsRoleResult> {
+    const payload = await verifyGoogleToken(idToken);
+    if (!payload || !payload.email || !payload.sub) {
+      throw new AppError("Invalid Google token", 401);
+    }
+
+    let user = await userStore.findByGoogleId(payload.sub);
+
+    if (!user) {
+      user = await userStore.findByEmail(payload.email);
+
+      if (user) {
+        // Link Google ID to existing account if not already linked
+        if (!user.googleId) {
+          // Future: update user with googleId
+        }
+      } else {
+        // New user — role required
+        if (!role) {
+          return { needsRole: true };
+        }
+
+        user = await userStore.create({
+          name: payload.name || "User",
+          email: payload.email,
+          googleId: payload.sub,
+          avatar: payload.picture,
+          role,
+          isEmailVerified: true,
+        });
+      }
     }
 
     return { user: toSafeUser(user), tokens: await createSessionTokens(user) };

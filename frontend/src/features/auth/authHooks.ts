@@ -67,6 +67,24 @@ export const useLogin = () => {
   });
 };
 
+export const useGoogleLogin = () => {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: { idToken: string; role?: string }) =>
+      authApi.googleLogin(payload),
+    onSuccess: (result) => {
+      // Only update auth state when a real user is returned (not needsRole signal)
+      if (!("needsRole" in result)) {
+        dispatch(setUser(result));
+        queryClient.setQueryData(meQueryKey, result);
+        toast.success("Logged in with Google");
+      }
+    },
+  });
+};
+
 export const useLogout = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();

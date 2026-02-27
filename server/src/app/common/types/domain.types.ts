@@ -24,16 +24,18 @@ export interface UserEntity {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string | undefined;
+  googleId?: string | undefined;
+  avatar?: string | undefined;
   role: UserRole;
   createdAt: string;
   isEmailVerified: boolean;
-  consumerProfile?: ConsumerProfileEntity;
-  shopkeeperProfile?: ShopkeeperProfileEntity;
-  emailVerificationTokenHash?: string;
-  emailVerificationExpiresAt?: string;
-  passwordResetTokenHash?: string;
-  passwordResetExpiresAt?: string;
+  consumerProfile?: ConsumerProfileEntity | undefined;
+  shopkeeperProfile?: ShopkeeperProfileEntity | undefined;
+  emailVerificationTokenHash?: string | undefined;
+  emailVerificationExpiresAt?: string | undefined;
+  passwordResetTokenHash?: string | undefined;
+  passwordResetExpiresAt?: string | undefined;
 }
 
 export interface ProductEntity {

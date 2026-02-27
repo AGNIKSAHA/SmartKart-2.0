@@ -21,6 +21,7 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().min(10),
   STRIPE_WEBHOOK_SECRET: z.string().min(10),
   TRIGGER_SECRET_KEY: z.string().optional().default("tr_dev_dummy_secret"),
+  GOOGLE_CLIENT_ID: z.string().min(10),
 });
 
 const parsed = envSchema.safeParse(process.env);

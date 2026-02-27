@@ -7,6 +7,7 @@ import { validateBody } from "../../common/middlewares/validate.middleware.js";
 import { authController } from "./auth.controller.js";
 import {
   emailSchema,
+  googleLoginSchema,
   loginSchema,
   registerSchema,
   resetPasswordSchema,
@@ -21,6 +22,11 @@ authRouter.post(
   authController.register,
 );
 authRouter.post("/login", validateBody(loginSchema), authController.login);
+authRouter.post(
+  "/google-login",
+  validateBody(googleLoginSchema),
+  authController.googleLogin,
+);
 authRouter.post(
   "/verify-email",
   validateBody(verifyEmailSchema),

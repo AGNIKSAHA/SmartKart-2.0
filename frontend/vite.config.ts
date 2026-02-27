@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true, // Needed for Docker, but will be mapped to localhost
+    strictPort: true,
   },
   build: {
     rollupOptions: {
