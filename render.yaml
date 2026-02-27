@@ -1,0 +1,59 @@
+services:
+  # Backend API Service
+  - type: web
+    name: smartkart-api
+    runtime: docker
+    dockerContext: ./server
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false # Set this in Render Dashboard to your Cloud MongoDB URL
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      - key: MAIL_SERVICE
+        value: gmail
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: MOBILE_ENCRYPTION_KEY
+        generateValue: true
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        fromService:
+          type: web
+          name: smartkart-web
+          property: url
+
+  # Frontend Web Service
+  - type: web
+    name: smartkart-web
+    runtime: docker
+    dockerContext: ./frontend
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: smartkart-api
+          property: url
+        # Note: We append /api/v1 because the frontend expects it
+        # However, 'fromService' gives the root URL.
+        # We can try to use a placeholder or instruct the user to update it.
+        # Render doesn't support complex string concatenation in render.yaml easily.
+        # So we will set VITE_API_URL in the dashboard or use a script.
