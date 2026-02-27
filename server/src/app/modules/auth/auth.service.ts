@@ -124,7 +124,11 @@ export const authService = {
       isEmailVerified: false,
     });
 
-    await sendVerificationEmail(user);
+    try {
+      await sendVerificationEmail(user);
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+    }
 
     return { user: toSafeUser(user) };
   },
