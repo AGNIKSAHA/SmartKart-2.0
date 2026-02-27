@@ -7,29 +7,40 @@ export interface MailPayload {
   text: string;
 }
 
-interface SmtpOptions {
-  service?: string;
-  auth: {
-    user: string;
-    pass: string;
-  };
-  family?: number;
-}
-
 const transporter = nodemailer.createTransport({
-  service: env.MAIL_SERVICE,
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: env.EMAIL_USER,
     pass: env.EMAIL_PASS,
   },
-  family: 4, // Force IPv4 to avoid ENETUNREACH on Node 18+ (Render/Docker)
-} as SmtpOptions as unknown as nodemailer.TransportOptions);
+} as nodemailer.TransportOptions);
+
+// Verify connection configuration on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("[Mail Service] Transporter verification failed:", error);
+  } else {
+    console.log("[Mail Service] Transporter is ready to send emails");
+  }
+});
 
 export const sendEmail = async (payload: MailPayload): Promise<void> => {
-  await transporter.sendMail({
-    from: env.EMAIL_USER,
-    to: payload.to,
-    subject: payload.subject,
-    text: payload.text,
-  });
+  console.log(`[Mail Service] Attempting to send email to: ${payload.to}`);
+  try {
+    await transporter.sendMail({
+      from: env.EMAIL_USER,
+      to: payload.to,
+      subject: payload.subject,
+      text: payload.text,
+    });
+    console.log(`[Mail Service] Email sent successfully to: ${payload.to}`);
+  } catch (error) {
+    console.error(
+      `[Mail Service] Detailed error sending email to ${payload.to}:`,
+      error,
+    );
+    throw error;
+  }
 };
