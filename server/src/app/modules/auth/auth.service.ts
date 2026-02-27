@@ -217,7 +217,14 @@ export const authService = {
       return;
     }
 
-    await sendVerificationEmail(user);
+    try {
+      await sendVerificationEmail(user);
+    } catch (error) {
+      console.error(
+        "[Auth Service] Failed to resend verification email:",
+        error,
+      );
+    }
   },
 
   async forgotPassword(email: string): Promise<void> {
@@ -241,11 +248,18 @@ export const authService = {
 
     const resetLink = `${env.CORS_ORIGIN}/reset-password?email=${encodeURIComponent(user.email)}&token=${token}`;
 
-    await sendEmail({
-      to: user.email,
-      subject: "Reset your password",
-      text: `Reset your password with this link: ${resetLink}`,
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your password",
+        text: `Reset your password with this link: ${resetLink}`,
+      });
+    } catch (error) {
+      console.error(
+        "[Auth Service] Failed to send password reset email:",
+        error,
+      );
+    }
   },
 
   async resetPassword(
