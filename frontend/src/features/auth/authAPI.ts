@@ -17,7 +17,7 @@ export const authApi = {
     return unwrap(http.post("/auth/login", payload));
   },
   googleLogin(payload: {
-    idToken: string;
+    accessToken: string;
     role?: string;
   }): Promise<User | { needsRole: true }> {
     return unwrap(http.post("/auth/google-login", payload));

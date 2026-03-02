@@ -27,6 +27,6 @@ export const resetPasswordSchema = z.object({
   newPassword: z.string().min(8),
 });
 export const googleLoginSchema = z.object({
-  idToken: z.string().min(10),
+  accessToken: z.string().min(10),
   role: z.enum(["shopkeeper", "consumer"]).optional(),
 });

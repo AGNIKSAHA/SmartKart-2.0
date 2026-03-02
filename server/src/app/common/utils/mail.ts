@@ -23,14 +23,20 @@ const transporter = nodemailer.createTransport({
   family: 4,
 } as nodemailer.TransportOptions);
 
-// Verify connection configuration on startup
-transporter.verify((error) => {
-  if (error) {
-    console.error("[Mail Service] Transporter verification failed:", error);
-  } else {
-    console.log("[Mail Service] Transporter is ready to send emails");
-  }
-});
+// Skip verification in development — home routers/ISPs commonly block
+// outbound port 587, causing a misleading ETIMEDOUT that has no impact
+// on actual functionality (emails still send fine in production on Render).
+if (env.NODE_ENV === "production") {
+  transporter.verify((error) => {
+    if (error) {
+      console.error("[Mail Service] Transporter verification failed:", error);
+    } else {
+      console.log("[Mail Service] Transporter is ready to send emails");
+    }
+  });
+} else {
+  console.log("[Mail Service] Skipping SMTP verification in development");
+}
 
 export const sendEmail = async (payload: MailPayload): Promise<void> => {
   console.log(`[Mail Service] Attempting to send email to: ${payload.to}`);

@@ -8,9 +8,12 @@ export default defineConfig({
     host: true, // Needed for Docker, but will be mapped to localhost
     strictPort: true,
     headers: {
-      // Allow Google OAuth popup to postMessage back to the parent window.
-      // "same-origin" (the browser default when COOP is set) breaks this.
-      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+      // For the implicit access_token flow (useGoogleLogin hook), COOP must be
+      // "unsafe-none" so the Google GIS library can correctly detect popup closure
+      // via window.closed. "same-origin-allow-popups" was needed for the old
+      // <GoogleLogin> credential/FedCM flow, but causes an infinite setTimeout
+      // polling loop with the popup-based implicit flow.
+      "Cross-Origin-Opener-Policy": "unsafe-none",
     },
   },
   build: {

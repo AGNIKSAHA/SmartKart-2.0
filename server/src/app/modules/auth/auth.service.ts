@@ -66,12 +66,27 @@ const toSafeUser = (user: UserEntity): AuthUserResponse => ({
 
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
-const verifyGoogleToken = async (idToken: string) => {
-  const ticket = await client.verifyIdToken({
-    idToken,
-    audience: env.GOOGLE_CLIENT_ID,
+// Verify via Google's userinfo endpoint — works with access_token from popup flow.
+// The endpoint intrinsically validates the token (returns 401 if invalid/expired).
+const verifyGoogleAccessToken = async (
+  accessToken: string,
+): Promise<{ sub: string; email: string; name?: string; picture?: string }> => {
+  const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
-  return ticket.getPayload();
+  if (!res.ok) {
+    throw new AppError("Invalid or expired Google access token", 401);
+  }
+  const data = (await res.json()) as {
+    sub: string;
+    email: string;
+    name?: string;
+    picture?: string;
+  };
+  if (!data.sub || !data.email) {
+    throw new AppError("Invalid Google token payload", 401);
+  }
+  return data;
 };
 
 const createSessionTokens = async (
@@ -179,20 +194,23 @@ export const authService = {
   },
 
   async googleLogin(
-    idToken: string,
+    accessToken: string,
     role?: UserRole,
   ): Promise<AuthResult | NeedsRoleResult> {
-    // Wrap token verification so Google library errors surface as clean 401s
-    // instead of unhandled exceptions that become 500s.
-    let payload: Awaited<ReturnType<typeof verifyGoogleToken>>;
+    let payload: {
+      sub: string;
+      email: string;
+      name?: string;
+      picture?: string;
+    };
     try {
-      payload = await verifyGoogleToken(idToken);
+      payload = await verifyGoogleAccessToken(accessToken);
     } catch (err) {
       console.error("[Auth] Google token verification failed:", err);
       throw new AppError("Invalid or expired Google token", 401);
     }
 
-    if (!payload || !payload.email || !payload.sub) {
+    if (!payload.email || !payload.sub) {
       throw new AppError("Invalid Google token", 401);
     }
 

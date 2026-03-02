@@ -72,7 +72,7 @@ export const useGoogleLogin = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: { idToken: string; role?: string }) =>
+    mutationFn: (payload: { accessToken: string; role?: string }) =>
       authApi.googleLogin(payload),
     onSuccess: (result) => {
       // Only update auth state when a real user is returned (not needsRole signal)

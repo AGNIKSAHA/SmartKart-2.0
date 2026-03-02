@@ -36,10 +36,7 @@ services:
       - key: GOOGLE_CLIENT_ID
         sync: false # Set this in Render Dashboard — same value as VITE_GOOGLE_CLIENT_ID
       - key: CORS_ORIGIN
-        fromService:
-          type: web
-          name: smartkart-web
-          property: url
+        value: https://smartkart-frontend-kcc1.onrender.com
 
   # Frontend Web Service
   - type: web

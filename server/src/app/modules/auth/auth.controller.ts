@@ -61,8 +61,11 @@ export const authController = {
   },
 
   async googleLogin(req: Request, res: Response): Promise<void> {
-    const { idToken, role } = req.body as { idToken: string; role?: UserRole };
-    const result = await authService.googleLogin(idToken, role);
+    const { accessToken, role } = req.body as {
+      accessToken: string;
+      role?: UserRole;
+    };
+    const result = await authService.googleLogin(accessToken, role);
 
     // New user with no role selected yet — signal frontend to show role picker
     if ("needsRole" in result) {

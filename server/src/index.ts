@@ -29,10 +29,12 @@ app.set("trust proxy", 1);
 // silently severed and Google Sign-In fails with an AbortError / COOP warning.
 app.use(
   helmet({
-    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginOpenerPolicy: {
+      policy: "same-origin-allow-popups",
+    },
+    crossOriginEmbedderPolicy: false,
   }),
 );
-
 // CORS — accept comma-separated list of origins from env so both local dev
 // and multiple production domains are supported without code changes.
 const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
@@ -43,7 +45,11 @@ app.use(
       // Allow requests with no origin (curl, Postman, same-origin server calls)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin '${origin}' not allowed`));
+      // Pass null + false: correctly omits Access-Control-Allow-Origin header
+      // (standard CORS rejection). Do NOT throw an Error here — that would
+      // bypass the cors library and hit the global error handler as a 500.
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      callback(null, false);
     },
     credentials: true,
   }),
