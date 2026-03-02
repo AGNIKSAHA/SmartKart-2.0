@@ -30,16 +30,14 @@ export const errorHandler = (
   }
 
   if (err instanceof ZodError) {
-    res
-      .status(422)
-      .json({
-        success: false,
-        message: "Validation failed",
-        issues: err.issues,
-      });
+    res.status(422).json({
+      success: false,
+      message: "Validation failed",
+      issues: err.issues,
+    });
     return;
   }
 
-  console.error("[Error Handler]:", err);
+  console.error(`[Error Handler] ${_req.method} ${_req.originalUrl}:`, err);
   res.status(500).json({ success: false, message: "Internal server error" });
 };

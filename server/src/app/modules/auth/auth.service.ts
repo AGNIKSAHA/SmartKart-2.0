@@ -182,7 +182,16 @@ export const authService = {
     idToken: string,
     role?: UserRole,
   ): Promise<AuthResult | NeedsRoleResult> {
-    const payload = await verifyGoogleToken(idToken);
+    // Wrap token verification so Google library errors surface as clean 401s
+    // instead of unhandled exceptions that become 500s.
+    let payload: Awaited<ReturnType<typeof verifyGoogleToken>>;
+    try {
+      payload = await verifyGoogleToken(idToken);
+    } catch (err) {
+      console.error("[Auth] Google token verification failed:", err);
+      throw new AppError("Invalid or expired Google token", 401);
+    }
+
     if (!payload || !payload.email || !payload.sub) {
       throw new AppError("Invalid Google token", 401);
     }
@@ -193,12 +202,15 @@ export const authService = {
       user = await userStore.findByEmail(payload.email);
 
       if (user) {
-        // Link Google ID to existing account if not already linked
+        // Existing email account — link Google ID so future logins hit the
+        // fast path (findByGoogleId) and the stub comment is no longer a bug.
         if (!user.googleId) {
-          // Future: update user with googleId
+          await userStore.linkGoogleId(user.id, payload.sub, payload.picture);
+          // Re-fetch so the returned user object reflects the new googleId/avatar
+          user = (await userStore.findById(user.id)) ?? user;
         }
       } else {
-        // New user — role required
+        // Brand-new user — role is required before we can create the account
         if (!role) {
           return { needsRole: true };
         }

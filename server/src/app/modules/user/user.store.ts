@@ -189,6 +189,23 @@ export const userStore = {
     return user ? toEntity(user) : undefined;
   },
 
+  async linkGoogleId(
+    userId: string,
+    googleId: string,
+    avatar?: string,
+  ): Promise<void> {
+    await UserModel.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          googleId,
+          isEmailVerified: true, // Google-verified email counts as verified
+          ...(avatar ? { avatar } : {}),
+        },
+      },
+    ).exec();
+  },
+
   async findById(id: string): Promise<UserEntity | undefined> {
     const user = await UserModel.findById(id).lean<UserDb>().exec();
     return user ? toEntity(user) : undefined;

@@ -9,16 +9,22 @@ export interface MailPayload {
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  // Port 587 + STARTTLS is more reliable on Render than 465 (SSL).
+  // Port 465 often resolves to an IPv6 address that Render free-tier
+  // cannot reach, causing ENETUNREACH / ESOCKET errors.
+  port: 587,
+  secure: false, // false = STARTTLS (upgrades after connect)
   auth: {
     user: env.EMAIL_USER,
     pass: env.EMAIL_PASS,
   },
+  // Force IPv4 — prevents Node from picking an IPv6 address from DNS,
+  // which Render's network cannot route to Gmail's SMTP servers.
+  family: 4,
 } as nodemailer.TransportOptions);
 
 // Verify connection configuration on startup
-transporter.verify((error, success) => {
+transporter.verify((error) => {
   if (error) {
     console.error("[Mail Service] Transporter verification failed:", error);
   } else {
