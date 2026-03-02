@@ -7,6 +7,11 @@ export default defineConfig({
     port: 5173,
     host: true, // Needed for Docker, but will be mapped to localhost
     strictPort: true,
+    headers: {
+      // Allow Google OAuth popup to postMessage back to the parent window.
+      // "same-origin" (the browser default when COOP is set) breaks this.
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    },
   },
   build: {
     rollupOptions: {

@@ -112,7 +112,6 @@ export const LoginPage = () => {
                   <GoogleLogin
                     onSuccess={onGoogleSuccess}
                     onError={() => toast.error("Google login failed")}
-                    useOneTap
                     theme="outline"
                     shape="pill"
                   />

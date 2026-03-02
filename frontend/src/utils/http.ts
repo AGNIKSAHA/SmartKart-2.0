@@ -32,7 +32,8 @@ http.interceptors.response.use(
 
     if (
       originalRequest?.url === "/auth/refresh" ||
-      originalRequest?.url?.endsWith("/auth/refresh")
+      originalRequest?.url?.endsWith("/auth/refresh") ||
+      originalRequest?.url?.includes("/auth/")
     ) {
       return Promise.reject(error);
     }
