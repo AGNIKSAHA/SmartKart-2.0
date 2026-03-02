@@ -3,6 +3,7 @@ import "express-async-errors";
 
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
 import express from "express";
 import { connectToDatabase } from "./app/common/config/database.js";
 import { env } from "./app/common/config/env.js";
@@ -21,10 +22,29 @@ const app = express();
 // identify real client IPs instead of throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
 app.set("trust proxy", 1);
 
-// Middlewares
+// Security headers — set before any route handlers.
+// crossOriginOpenerPolicy: "same-origin-allow-popups" is required for the
+// Google OAuth popup to postMessage credentials back to the opener window.
+// Without it (or with the stricter "same-origin" default), the popup is
+// silently severed and Google Sign-In fails with an AbortError / COOP warning.
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  }),
+);
+
+// CORS — accept comma-separated list of origins from env so both local dev
+// and multiple production domains are supported without code changes.
+const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
+
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, Postman, same-origin server calls)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin '${origin}' not allowed`));
+    },
     credentials: true,
   }),
 );
