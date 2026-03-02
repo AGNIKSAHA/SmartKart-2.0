@@ -6,10 +6,18 @@ import { authService } from "./auth.service.js";
 import { userStore } from "../user/user.store.js";
 import type { UserRole } from "../../common/types/auth.types.js";
 
+const isProduction = env.NODE_ENV === "production";
+
 const baseCookieOptions = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  sameSite: "lax" as const,
+  secure: isProduction,
+  // SameSite=None is required for cross-origin cookies in production (HTTPS).
+  // The frontend (smartkart-frontend-kcc1.onrender.com) and backend
+  // (smartkart-api.onrender.com) are on different origins — browsers block
+  // SameSite=Lax cookies on cross-site requests, causing 401 on every API call.
+  // SameSite=None requires Secure=true (only valid over HTTPS).
+  // In local dev (HTTP), we fall back to "lax" since "none" requires HTTPS.
+  sameSite: (isProduction ? "none" : "lax") as "none" | "lax",
   path: "/",
 };
 
