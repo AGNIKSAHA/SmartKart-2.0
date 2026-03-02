@@ -16,6 +16,11 @@ import { productStore } from "./app/modules/product/product.store.js";
 
 const app = express();
 
+// Trust the first proxy hop (Render's load balancer / any reverse proxy).
+// Required for express-rate-limit to correctly read X-Forwarded-For and
+// identify real client IPs instead of throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set("trust proxy", 1);
+
 // Middlewares
 app.use(
   cors({
