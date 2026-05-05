@@ -10,10 +10,9 @@ import { useUnreadNotificationsCount } from "../features/notifications/notificat
 import { ConfirmModal } from "../components/ConfirmModal";
 
 const navItemClass = ({ isActive }: { isActive: boolean }): string =>
-  `rounded-md px-2 py-1 transition ${
-    isActive
-      ? "bg-brand-100 text-brand-800"
-      : "text-slate-700 hover:bg-slate-100 hover:text-brand-700"
+  `rounded-md px-2 py-1 transition ${isActive
+    ? "bg-brand-100 text-brand-800"
+    : "text-slate-700 hover:bg-slate-100 hover:text-brand-700"
   }`;
 
 export const RootLayout = () => {
@@ -43,7 +42,7 @@ export const RootLayout = () => {
             to="/"
             className="text-xl font-extrabold tracking-tight text-brand-700"
           >
-            ecommerceX
+            SmartKart
           </NavLink>
           <form className="flex-1" onSubmit={onSearch}>
             <input
